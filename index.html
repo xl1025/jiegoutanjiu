@@ -382,60 +382,7 @@
             document.body.appendChild(screenshotBtn);
         }
 
-        // ================= 2. 动态创建全屏/横屏切换按钮 =================
-        const fullscreenBtn = document.createElement('button');
-        fullscreenBtn.id = 'btn-global-fullscreen';
-        fullscreenBtn.className = 'magic-btn';
-        fullscreenBtn.innerHTML = '⛶'; // 全屏图标
-        fullscreenBtn.title = '全屏与横屏模式';
-        fullscreenBtn.style.color = '#00ffcc';
-        fullscreenBtn.style.borderColor = '#00ffcc';
-        
-        if (systemMenu) {
-            systemMenu.appendChild(fullscreenBtn);
-        } else {
-            document.body.appendChild(fullscreenBtn);
-        }
-
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                // 请求全屏
-                document.documentElement.requestFullscreen().then(() => {
-                    fullscreenBtn.innerHTML = '✖'; // 变成关闭图标
-                    // 尝试调用系统底层强制横向锁定 (部分移动端浏览器支持)
-                    if (screen.orientation && screen.orientation.lock) {
-                        screen.orientation.lock('landscape').catch(err => {
-                            console.log('设备不支持自动旋转锁定或需要用户手动旋转屏幕:', err);
-                        });
-                    }
-                }).catch(err => {
-                    console.error('全屏请求被拒绝:', err);
-                    if (window.app && window.app.uiManager) {
-                        window.app.uiManager.showMagicNotice('⚠️ 提示', '无法进入全屏，请检查浏览器权限设置。');
-                    }
-                });
-            } else {
-                // 退出全屏
-                document.exitFullscreen().then(() => {
-                    fullscreenBtn.innerHTML = '⛶';
-                    if (screen.orientation && screen.orientation.unlock) {
-                        screen.orientation.unlock();
-                    }
-                });
-            }
-        });
-
-        // 监听系统级全屏切换 (防止按 ESC 退出全屏时图标不更新)
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) {
-                fullscreenBtn.innerHTML = '⛶';
-                if (screen.orientation && screen.orientation.unlock) {
-                    screen.orientation.unlock();
-                }
-            }
-        });
-
-        // ================= 3. 核心智能截图逻辑 =================
+        // ================= 2. 核心智能截图逻辑 =================
         screenshotBtn.addEventListener('click', () => {
             let targetCanvas = null;
             let filename = '微观结构_';
