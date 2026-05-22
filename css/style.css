@@ -160,7 +160,7 @@ body, html {
 
 /* 动作条：缩小内边距使整体变得更为紧凑 */
 .action-bar { 
-    position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); 
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); 
     background: rgba(30, 20, 10, 0.85); border: 3px solid var(--rpg-border); 
     border-radius: 15px; padding: 10px 15px; display: flex; align-items: center; 
     gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(139, 90, 43, 0.5); 
@@ -208,11 +208,11 @@ body, html {
 
 /* ================= 分屏模式下的动态布局自适应 (Split Mode) ================= */
 .action-bar.split-mode {
-    left: 20px;               /* 紧贴右侧主反应区的左下角，不遮挡中间画面 */
+    left: 20px;               
     right: auto;
-    transform: none;          /* 取消原来的水平居中对齐 */
+    transform: none;          
     bottom: 20px;
-    flex-direction: column;   /* 整个技能栏垂直排列 */
+    flex-direction: column;   
     padding: 20px 15px;
     border-radius: 15px;
     align-items: center;
@@ -221,14 +221,14 @@ body, html {
 }
 
 .action-bar.split-mode .skill-group {
-    flex-direction: column;   /* 组内元素垂直排列，每个按钮占一横行 */
+    flex-direction: column;   
     gap: 15px;
     width: 100%;
     align-items: center;
 }
 
 .action-bar.split-mode .skill-label {
-    position: static;         /* 取消绝对定位，跟随流式布局 */
+    position: static;         
     transform: none;
     margin-bottom: 5px;
     font-size: 1.1em;
@@ -237,14 +237,14 @@ body, html {
 }
 
 .action-bar.split-mode .skill-divider {
-    width: 100%;              /* 分割线由竖线变为横线 */
+    width: 100%;              
     height: 2px;
     background: linear-gradient(to right, transparent, var(--rpg-border), transparent);
     margin: 10px 0;
 }
 
 .action-bar.split-mode .rune-btn { width: 55px; height: 55px; font-size: 1.6em; }
-.action-bar.split-mode .spell-btn { width: 55px; height: 55px; font-size: 1.4em; } /* 分屏模式下同样保持圆润饱满的符号按钮 */
+.action-bar.split-mode .spell-btn { width: 55px; height: 55px; font-size: 1.4em; } 
 
 /* ================= 响应式双 3D 弹窗样式 ================= */
 .dual-popup-overlay {
@@ -267,13 +267,12 @@ body, html {
     box-shadow: inset 0 0 20px rgba(0,0,0,0.8); padding: 10px;
 }
 
-
 /* ================= 桌面大屏优化 ================= */
 /* 3D主视口宽度控制在 3/4，防止遮盖操作 UI */
 @media screen and (min-width: 1025px) {
     #canvas-container {
         width: 75%;
-        left: 12.5%; /* 居中显示 */
+        left: 12.5%; 
     }
 }
 
@@ -316,58 +315,86 @@ body, html {
 
 /* ================= 响应式布局：手机端 (max-width: 768px) ================= */
 @media screen and (max-width: 768px) {
-    /* 核心布局改为上下堆叠，释放横向空间 */
-    #integrated-layout { flex-direction: column; }
+    /* 🚀 核心布局：保留绝佳的双指缩放空间 */
+    #integrated-layout { display: block; position: relative; }
+    #right-action-stage { width: 100%; height: calc(100vh - 65px); } 
     
-    /* 左侧参考视图变为顶部折叠视图，限制高度 */
+    /* 🚀 左侧参考视图改为悬浮的“画中画” (PIP) 模式 */
     #left-vision-panel {
-        width: 100%;
-        height: 35vh; 
-        border-right: none;
-        border-bottom: 3px solid var(--rpg-border);
+        position: absolute;
+        top: 15px; 
+        left: 15px;
+        width: 130px; 
+        height: 130px; 
+        border: 2px solid var(--rpg-border);
+        border-radius: 12px;
+        background: rgba(10, 10, 15, 0.9);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.8);
+        z-index: 20;
     }
-    #left-vision-panel.hidden {
-        height: 0;
-        border-bottom: none;
-    }
+    #left-vision-panel.hidden { display: none !important; }
+    #left-vision-panel .panel-header { display: none; } 
+    #left-vision-panel .compact-controls-bar { display: none; } 
+    #main-3d-content-wrapper { padding: 5px; height: 100%; justify-content: center; }
 
     /* 缩小标题与导航按钮，保证单手操作便利 */
     .game-logo { font-size: 1.2em; }
     .nav-btn { font-size: 1em; padding: 6px 12px; }
 
-    /* 底部操作条极限紧凑化，保留大触控面积 */
+    /* 🚀 底部操作条极限紧凑化，完美适配单行显示，避免换行导致遮挡 */
     .action-bar {
-        width: 90%;
-        bottom: 15px !important;
-        padding: 10px;
-        gap: 10px;
-        flex-wrap: wrap; 
+        width: 96%;
+        bottom: 50px !important; /* 抬高位置，避免被全面屏手机的底部小白条或 Safari 导航栏遮挡 */
+        padding: 10px 5px;
+        gap: 5px;
+        flex-wrap: nowrap; /* 强制单行显示，防止碳氢氧掉下去 */
     }
+    .skill-group { gap: 6px; }
     .rune-btn, .spell-btn {
-        width: 48px;
-        height: 48px;
-        font-size: 1.2em;
+        width: 42px; /* 适当缩小以保证一行能完美放下 6 个按钮 */
+        height: 42px;
+        font-size: 1.1em;
     }
-    .skill-label { font-size: 0.85em; top: -25px; }
-    .skill-divider { height: 40px; }
+    .skill-label { font-size: 0.8em; top: -22px; }
+    .skill-divider { height: 35px; margin: 0 2px; }
+
+    /* 收起底栏的把手也相应抬高 */
+    .slide-handle-fixed { bottom: 20px; }
 
     /* 系统菜单小按钮缩放 */
     .system-menu .magic-btn {
         width: 38px; height: 38px; font-size: 1.2em;
     }
 
-    /* 独立双 3D 弹窗全屏化 */
+    /* 独立双 3D 弹窗：剥除边框全屏化 */
     .dual-popup-content {
-        width: 95vw;
-        height: 90vh;
-        padding: 20px;
+        width: 100vw;
+        height: 100vh;
+        max-width: 100vw;
+        border: none;
+        border-radius: 0;
+        padding: 55px 10px 15px 10px; 
+        box-sizing: border-box;
     }
     .dual-3d-container {
         flex-direction: column !important;
-        overflow-y: auto;
+        flex: 1;
+        gap: 15px;
+        margin-top: 0;
     }
-    .model-box { min-height: 250px; }
-    .model-box h3 { font-size: 1.6em !important; } /* 移动端字号特调 */
+    .model-box { 
+        flex: 1; 
+        min-height: 0; 
+        height: 100%;
+        border-width: 1px;
+    }
+    .model-box h3 { font-size: 1.8em !important; margin: 5px 0 0 0 !important; padding-top: 8px; border-top-width: 1px; } 
+
+    /* 修复全屏状态下关闭按钮的位置 */
+    #btn-close-dual-popup {
+        top: 10px; right: 10px;
+        width: 40px; height: 40px; font-size: 1.5em;
+    }
 
     /* 闯关面板内字体与拖拽槽适配 */
     .challenge-modal { width: 95vw; padding: 15px; }
@@ -385,10 +412,18 @@ body, html {
     .header-left { flex-direction: column; gap: 8px; text-align: center; }
     .game-logo { font-size: 1.1em; }
     
-    .action-bar {
-        border-radius: 12px;
-    }
-    .skill-group { gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .action-bar { border-radius: 12px; bottom: 45px !important; }
+    .skill-group { gap: 4px; }
+    .rune-btn, .spell-btn { width: 38px; height: 38px; font-size: 1em; }
     
     .magic-btn.close-btn { width: 35px; height: 35px; font-size: 1em; top: 10px; right: 10px; }
+}
+
+/* ================= 完美平衡：允许双指捏合缩放 UI，单指滑动旋转模型 ================= */
+#canvas-container, 
+.mini-model-container, 
+.model-box, 
+.challenge-snapshot-box {
+    /* 将 none 改为 pinch-zoom，把双指权限交还给浏览器，解决无法缩放网页的问题 */
+    touch-action: pinch-zoom !important; 
 }
