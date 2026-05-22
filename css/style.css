@@ -246,26 +246,6 @@ body, html {
 .action-bar.split-mode .rune-btn { width: 55px; height: 55px; font-size: 1.6em; }
 .action-bar.split-mode .spell-btn { width: 55px; height: 55px; font-size: 1.4em; } 
 
-/* ================= 响应式双 3D 弹窗样式 ================= */
-.dual-popup-overlay {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.85); z-index: 999999;
-    display: flex; justify-content: center; align-items: center; pointer-events: auto;
-}
-.dual-popup-content {
-    background: var(--rpg-dark); border: 3px solid var(--rpg-border);
-    border-radius: 15px; width: 90vw; height: 80vh; max-width: 1200px;
-    display: flex; flex-direction: column; padding: 20px; position: relative;
-    box-shadow: 0 0 50px rgba(0,0,0,0.9);
-}
-.dual-3d-container {
-    display: flex; flex: 1; gap: 20px; margin-top: 10px; flex-wrap: wrap; overflow: hidden;
-}
-.model-box {
-    flex: 1; border: 2px solid #555; background: rgba(0,0,0,0.6); border-radius: 10px;
-    display: flex; flex-direction: column; align-items: center; min-width: 300px;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.8); padding: 10px;
-}
 
 /* ================= 桌面大屏优化 ================= */
 /* 3D主视口宽度控制在 3/4，防止遮盖操作 UI */
@@ -445,12 +425,20 @@ body, html {
     .magic-btn.close-btn { width: 35px; height: 35px; font-size: 1em; top: 10px; right: 10px; }
 }
 
-/* ================= 完美平衡：允许双指捏合缩放 UI，单指滑动旋转模型，底部空白区自然翻页 ================= */
-#canvas-container, 
+/* ================= 移动端沉浸模式 (自动隐藏标题栏支持) ================= */
+body.hide-header #right-action-stage {
+    height: 100vh !important;
+}
+
+/* ================= 移动端 3D 引擎触控防干扰与双指缩放优化 ================= */
+/* 1. 主反应区（3D画布）：交还给 Three.js 处理单指旋转与双指缩放模型，阻止浏览器缩放网页导致画面乱跳 */
+#canvas-container {
+    touch-action: none !important; 
+}
+
+/* 2. 其他非主操作区：允许原生上下滑动以匹配滚动条，并支持双指放大网页 */
 .mini-model-container, 
 .model-box, 
 .challenge-snapshot-box {
-    /* 允许原生上下滑动以匹配滚动条，并支持双指缩放操作。 */
-    /* 在 3D 画布区域双指捏合时会缩放页面，单指滑动将触发 Three.js 旋转。 */
     touch-action: pan-y pinch-zoom !important; 
 }
