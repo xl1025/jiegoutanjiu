@@ -208,11 +208,11 @@ body, html {
 
 /* ================= 分屏模式下的动态布局自适应 (Split Mode) ================= */
 .action-bar.split-mode {
-    left: 20px;               /* 紧贴右侧主反应区的左下角，不遮挡中间画面 */
+    left: 20px;               
     right: auto;
-    transform: none;          /* 取消原来的水平居中对齐 */
+    transform: none;          
     bottom: 20px;
-    flex-direction: column;   /* 整个技能栏垂直排列 */
+    flex-direction: column;   
     padding: 20px 15px;
     border-radius: 15px;
     align-items: center;
@@ -221,14 +221,14 @@ body, html {
 }
 
 .action-bar.split-mode .skill-group {
-    flex-direction: column;   /* 组内元素垂直排列，每个按钮占一横行 */
+    flex-direction: column;   
     gap: 15px;
     width: 100%;
     align-items: center;
 }
 
 .action-bar.split-mode .skill-label {
-    position: static;         /* 取消绝对定位，跟随流式布局 */
+    position: static;         
     transform: none;
     margin-bottom: 5px;
     font-size: 1.1em;
@@ -237,14 +237,14 @@ body, html {
 }
 
 .action-bar.split-mode .skill-divider {
-    width: 100%;              /* 分割线由竖线变为横线 */
+    width: 100%;              
     height: 2px;
     background: linear-gradient(to right, transparent, var(--rpg-border), transparent);
     margin: 10px 0;
 }
 
 .action-bar.split-mode .rune-btn { width: 55px; height: 55px; font-size: 1.6em; }
-.action-bar.split-mode .spell-btn { width: 55px; height: 55px; font-size: 1.4em; } /* 分屏模式下同样保持圆润饱满的符号按钮 */
+.action-bar.split-mode .spell-btn { width: 55px; height: 55px; font-size: 1.4em; } 
 
 /* ================= 响应式双 3D 弹窗样式 ================= */
 .dual-popup-overlay {
@@ -273,7 +273,7 @@ body, html {
 @media screen and (min-width: 1025px) {
     #canvas-container {
         width: 75%;
-        left: 12.5%; /* 居中显示 */
+        left: 12.5%; 
     }
 }
 
@@ -316,20 +316,27 @@ body, html {
 
 /* ================= 响应式布局：手机端 (max-width: 768px) ================= */
 @media screen and (max-width: 768px) {
-    /* 核心布局改为上下堆叠，释放横向空间 */
-    #integrated-layout { flex-direction: column; }
+    /* 🚀 核心布局：解除上下平分堆叠！让右侧主反应舞台恢复 100% 全宽全高，保留绝佳的双指缩放空间 */
+    #integrated-layout { display: block; position: relative; }
+    #right-action-stage { width: 100%; height: calc(100vh - 65px); } /* 扣除顶部导航高度 */
     
-    /* 左侧参考视图变为顶部折叠视图，限制高度 */
+    /* 🚀 左侧参考视图改为悬浮的“画中画” (PIP) 模式，彻底解放主屏幕 */
     #left-vision-panel {
-        width: 100%;
-        height: 35vh; 
-        border-right: none;
-        border-bottom: 3px solid var(--rpg-border);
+        position: absolute;
+        top: 15px; 
+        left: 15px;
+        width: 130px; /* 极小化悬浮窗 */
+        height: 130px; 
+        border: 2px solid var(--rpg-border);
+        border-radius: 12px;
+        background: rgba(10, 10, 15, 0.9);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.8);
+        z-index: 20;
     }
-    #left-vision-panel.hidden {
-        height: 0;
-        border-bottom: none;
-    }
+    #left-vision-panel.hidden { display: none !important; }
+    #left-vision-panel .panel-header { display: none; } /* 隐藏画中画标题以节省空间 */
+    #left-vision-panel .compact-controls-bar { display: none; } /* 隐藏底部控制条 */
+    #main-3d-content-wrapper { padding: 5px; height: 100%; justify-content: center; }
 
     /* 缩小标题与导航按钮，保证单手操作便利 */
     .game-logo { font-size: 1.2em; }
@@ -356,18 +363,35 @@ body, html {
         width: 38px; height: 38px; font-size: 1.2em;
     }
 
-    /* 独立双 3D 弹窗全屏化 */
+    /* 🚀 独立双 3D 弹窗：彻底剥除边框全屏化，解决看不清的问题 */
     .dual-popup-content {
-        width: 95vw;
-        height: 90vh;
-        padding: 20px;
+        width: 100vw;
+        height: 100vh;
+        max-width: 100vw;
+        border: none;
+        border-radius: 0;
+        padding: 55px 10px 15px 10px; /* 顶部留足 55px 给关闭按钮 */
+        box-sizing: border-box;
     }
     .dual-3d-container {
         flex-direction: column !important;
-        overflow-y: auto;
+        flex: 1;
+        gap: 15px;
+        margin-top: 0;
     }
-    .model-box { min-height: 250px; }
-    .model-box h3 { font-size: 1.6em !important; } /* 移动端字号特调 */
+    .model-box { 
+        flex: 1; /* 完美 50/50 纵向等分剩余高度 */
+        min-height: 0; 
+        height: 100%;
+        border-width: 1px;
+    }
+    .model-box h3 { font-size: 1.8em !important; margin: 5px 0 0 0 !important; padding-top: 8px; border-top-width: 1px; } 
+
+    /* 修复全屏状态下关闭按钮的位置 */
+    #btn-close-dual-popup {
+        top: 10px; right: 10px;
+        width: 40px; height: 40px; font-size: 1.5em;
+    }
 
     /* 闯关面板内字体与拖拽槽适配 */
     .challenge-modal { width: 95vw; padding: 15px; }
@@ -385,9 +409,7 @@ body, html {
     .header-left { flex-direction: column; gap: 8px; text-align: center; }
     .game-logo { font-size: 1.1em; }
     
-    .action-bar {
-        border-radius: 12px;
-    }
+    .action-bar { border-radius: 12px; }
     .skill-group { gap: 8px; flex-wrap: wrap; justify-content: center; }
     
     .magic-btn.close-btn { width: 35px; height: 35px; font-size: 1em; top: 10px; right: 10px; }
