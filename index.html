@@ -1,0 +1,487 @@
+<!DOCTYPE html> 
+<html lang="zh-CN"> 
+<head>     
+    <meta charset="UTF-8">     
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">     
+    <title>炼金工坊：分子结构的奥秘</title>          
+    
+    <link rel="stylesheet" href="css/style.css">          
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>     
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/DragControls.js"></script>     
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>     
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+
+    <style>
+        /* ================= 底部操作栏与抽屉式动画 ================= */
+        .action-bar {
+            position: absolute !important; bottom: 40px !important; left: 50% !important;          
+            transform: translateX(-50%) !important; z-index: 1000; display: flex; justify-content: center; align-items: center;
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.4s ease !important;
+        }
+        .action-bar-hidden { 
+            transform: translate(-50%, 200px) !important; 
+            opacity: 0 !important; 
+            pointer-events: none !important; 
+        }
+        .skill-group, .skill-divider { transition: opacity 0.3s ease; }
+
+        /* ================= 独立悬浮的现代化小横杠手柄 ================= */
+        .slide-handle-fixed {
+            position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); width: 80px; height: 6px;
+            background-color: rgba(0, 255, 204, 0.6); border-radius: 10px; cursor: pointer; z-index: 1005; transition: all 0.3s ease; pointer-events: auto;
+        }
+        .slide-handle-fixed:hover { background-color: #00ffcc; box-shadow: 0 0 15px rgba(0, 255, 204, 0.8); height: 8px; width: 100px; }
+
+        /* ================= 弹窗独立显示，并隐藏主画布 ================= */
+        #canvas-container { transition: opacity 0.4s ease; width: 100%; height: 100%; position: absolute; left: 0; top: 0; opacity: 1; }
+        .canvas-shrunk { opacity: 0 !important; pointer-events: none !important; }
+        
+        .dual-popup-overlay {
+            position: fixed !important; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: rgba(0, 0, 0, 0.85); z-index: 9999999 !important;
+            display: flex; justify-content: center; align-items: center; pointer-events: auto; 
+        }
+
+        .dual-popup-content { 
+            background: rgba(15, 15, 20, 0.98); border: 4px solid var(--rpg-gold); border-radius: 20px;
+            width: 85vw; height: 85vh; display: flex; flex-direction: column; padding: 40px 50px; position: relative; 
+            box-shadow: 0 0 100px rgba(0,0,0,0.95);
+        }
+        .dual-3d-container { display: flex; flex-direction: row !important; flex: 1; gap: 40px; margin-top: 10px; }
+        .model-box {
+            flex: 1; border: 3px solid #555; background: radial-gradient(circle at center, #1a1a24 0%, #000 100%); border-radius: 16px; 
+            display: flex; flex-direction: column; align-items: center; box-shadow: inset 0 0 60px rgba(0,0,0,0.9); padding-bottom: 20px;
+        }
+        .model-box h3 {
+            width: 100%; font-size: 3em !important; color: var(--rpg-gold); margin: 20px 0 0 0 !important; text-shadow: 3px 3px 8px #000;
+            font-weight: bold; text-align: center; border-top: 2px dashed rgba(255, 215, 0, 0.4); padding-top: 20px;
+        }
+        #dual-3d-ethanol, #dual-3d-ether { width: 100%; flex: 1; min-height: 400px; }
+        #btn-close-dual-popup {
+            width: 60px; height: 60px; font-size: 2.2em; top: 20px; right: 20px; position: absolute; z-index: 1001;
+            background: rgba(30, 30, 40, 0.8); border-radius: 10px; cursor: pointer; border: 2px solid #555; color: #fff;
+        }
+        #btn-close-dual-popup:hover { background: rgba(255, 0, 0, 0.5); border-color: #ff4444; }
+
+        .nav-btn.locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); border-color: #555 !important; color: #888 !important; }
+
+        /* ================= 闯关挑战面板专属样式（居顶弹窗） ================= */
+        .challenge-overlay {
+            position: fixed !important; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: rgba(0, 0, 0, 0.85); 
+            z-index: 9999999 !important; 
+            display: flex; justify-content: center; 
+            align-items: flex-start; 
+            padding-top: 3vh; 
+            pointer-events: auto !important; 
+            backdrop-filter: blur(5px); 
+        }
+
+        .challenge-modal {
+            background: rgba(15, 15, 25, 0.98); border: 3px solid var(--rpg-mana); border-radius: 20px;
+            width: 88vw; max-width: 1400px; max-height: 94vh; padding: 30px; position: relative;
+            display: flex; flex-direction: column; box-shadow: 0 15px 60px rgba(0,255,204,0.3);
+            pointer-events: auto !important; 
+            animation: popDown 0.4s ease-out; 
+        }
+
+        @keyframes popDown {
+            from { transform: translateY(-40px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .challenge-scroll-content {
+            flex: 1; overflow-y: auto; padding-right: 20px; margin-top: 10px;
+        }
+        .challenge-scroll-content::-webkit-scrollbar { width: 12px; }
+        .challenge-scroll-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 6px; }
+        .challenge-scroll-content::-webkit-scrollbar-thumb { background: var(--rpg-mana); border-radius: 6px; border: 2px solid #1a1a24; }
+
+        .drag-pool-sticky {
+            display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; 
+            background: rgba(20,20,25,0.95); padding: 20px; border-radius: 12px; 
+            border: 2px solid #00ffcc; margin-bottom: 30px; 
+            position: sticky; top: -1px; z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+        }
+
+        .linear-drag {
+            padding: 15px 25px; font-size: 2.2em; background: linear-gradient(135deg, #2a2a35, #1a1a24); 
+            border: 3px solid #aaa; border-radius: 12px; color: #fff; font-weight: bold; cursor: pointer; 
+            user-select: none; transition: all 0.2s; box-shadow: 0 6px 15px rgba(0,0,0,0.6); 
+        }
+        .linear-drag:active { transform: scale(0.95); }
+
+        .challenge-item {
+            display: flex; gap: 40px; align-items: center; background: rgba(255,255,255,0.03);
+            border-radius: 16px; padding: 30px; margin-bottom: 30px; border: 1px solid #333;
+            box-sizing: border-box; 
+            width: 100%; 
+        }
+        @media (max-width: 1024px) { .challenge-item { flex-direction: column; align-items: stretch; } }
+
+        .challenge-snapshot-wrapper { flex: 1; min-width: 300px; text-align: center; display: flex; flex-direction: column; }
+        .challenge-snapshot-box {
+            position: relative; overflow: hidden; 
+            height: 400px; 
+            background: #000;
+            border: 2px solid #555; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.8); cursor: grab;
+        }
+        .challenge-snapshot-box:active { cursor: grabbing; }
+        .challenge-snapshot-box img {
+            width: 100%; height: 100%; object-fit: contain; pointer-events: none; 
+            transform-origin: center center; 
+        }
+        .zoom-hint {
+            position: absolute; bottom: 10px; right: 10px; color: rgba(0,255,204,0.8); font-size: 1.2em; font-weight: bold;
+            background: rgba(0,0,0,0.6); padding: 5px 12px; border-radius: 8px; pointer-events: none; z-index: 10;
+        }
+
+        .challenge-inputs-box { flex: 1.5; display: flex; flex-direction: column; justify-content: center; }
+        .challenge-title { color: #fff; font-size: 2em; margin-bottom: 20px; font-weight: bold; border-left: 6px solid var(--rpg-mana); padding-left: 15px; }
+
+        .linear-slot {
+            width: 90px; height: 60px; border: 3px dashed #666; border-radius: 10px; background: rgba(0,0,0,0.6); 
+            display: flex; justify-content: center; align-items: center; color: #fff; font-weight: bold; font-size: 2em; 
+            cursor: pointer; transition: all 0.2s; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); 
+        }
+        .struct-dash { color: #888; margin: 0 10px; font-weight: bold; font-size: 2.5em; }
+
+        .magic-input {
+            width: 100%; padding: 15px 20px; font-size: 1.6em; background: rgba(0,0,0,0.6);
+            border: 2px solid #444; color: #fff; border-radius: 10px; outline: none; transition: all 0.3s;
+            resize: vertical; font-family: "Microsoft YaHei", sans-serif;
+            pointer-events: auto !important; 
+            box-sizing: border-box; 
+            max-width: 100%;
+        }
+        .magic-input:focus { border-color: #00ffcc; box-shadow: 0 0 15px rgba(0,255,204,0.3); }
+
+        #btn-submit-structures {
+            width: 100%; padding: 20px; font-size: 2.2em; background: linear-gradient(to right, #004433, #006644);
+            color: #00ffcc; border: 2px solid #00ffcc; border-radius: 15px; cursor: pointer; margin-top: 10px;
+            font-weight: bold; transition: all 0.3s;
+            pointer-events: auto !important; 
+            box-sizing: border-box; 
+        }
+        #btn-submit-structures:hover { background: #00ffcc; color: #000; box-shadow: 0 0 30px rgba(0,255,204,0.5); }
+        
+        .magic-scroll {
+            position: fixed !important; z-index: 9999999 !important;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+    </style>
+
+</head> 
+<body>     
+    <header id="global-header" class="magic-top-bar">         
+        <div class="header-left">             
+            <h1 class="game-logo">🧪 炼金工坊：分子结构的奥秘</h1>             
+            <div id="level-indicator-container"></div>         
+        </div>                  
+        <nav id="module-nav-bar" class="magic-nav-bar">             
+            <button class="nav-btn" onclick="app.uiManager.switchModule(1)">🛠️ 结构探秘</button>             
+            <button id="nav-btn-mod2" class="nav-btn locked" onclick="app.uiManager.switchModule(2)">🔒 置换反应</button>             
+            <button id="nav-btn-mod3" class="nav-btn locked" onclick="app.uiManager.switchModule(3)">🔒 催化氧化</button>             
+            <button class="nav-btn" onclick="app.uiManager.switchModule(4)">📜 综合评测</button>         
+        </nav>     
+    </header>     
+
+    <div id="integrated-layout">                  
+        <div id="left-vision-panel" class="hidden">             
+            <header class="panel-header">                 
+                <h3 id="mini-vision-title" class="vision-title">3D 视图</h3>             
+            </header>             
+            <div id="main-3d-content-wrapper">                 
+                <div id="main-3d-preview" class="mini-model-container">                     
+                    <p class="loading-text">正在加载结构...</p>                 
+                </div>             
+            </div>             
+            <div id="mini-vision-controls" class="hidden compact-controls-bar">                 
+                <button id="btn-replay-animation" class="magic-btn compact-btn" title="重放动画">🔄</button>                 
+                <button id="btn-highlight-group" class="magic-btn compact-btn" title="高亮官能团">✨</button>             
+            </div>         
+        </div>         
+
+        <div id="right-action-stage">             
+            <div id="canvas-container"></div>             
+            <div id="ui-layer">                 
+                <aside id="system-menu" class="system-menu"></aside>                 
+                
+                <div id="btn-slide-elements" class="slide-handle-fixed" title="点击收起/展开底栏"></div>
+
+                <div id="action-bar" class="action-bar">                     
+                    <div class="skill-group element-skills" id="element-skills-container">                         
+                        <span class="skill-label">原子召唤</span>                         
+                        <button id="btn-add-c" class="magic-btn rune-btn btn-c" title="添加碳原子 (C)">C</button>                         
+                        <button id="btn-add-h" class="magic-btn rune-btn btn-h" title="添加氢原子 (H)">H</button>                         
+                        <button id="btn-add-o" class="magic-btn rune-btn btn-o" title="添加氧原子 (O)">O</button>                     
+                    </div>                                          
+                    
+                    <div id="skill-divider" class="skill-divider"></div>                      
+                    
+                    <div class="skill-group reaction-skills" id="reaction-skills-container">      
+                        <span class="skill-label">实验室</span>      
+                        <button id="btn-reaction-na" class="magic-btn spell-btn hidden" title="投入金属钠"> Na</button>      
+                        <button id="btn-reaction-cu" class="magic-btn spell-btn hidden" title="插入灼热铜丝"> Cu</button>      
+                        <button id="btn-finish" class="magic-btn spell-btn hidden" title="完成测试"> ✅ </button> 
+                    </div>                 
+                </div>                 
+            </div>         
+        </div>     
+    </div>     
+
+    <div id="linear-structure-challenge-overlay" class="hidden challenge-overlay">
+        <div class="challenge-modal">
+            <button id="btn-close-challenge" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 60px; height: 60px; font-size: 2.2em; z-index: 1000000;">❌</button>
+            
+            <h2 style="color: var(--rpg-mana); font-size: 3.5em; text-align: center; margin: 0; margin-bottom: 10px;">🎯 分子鉴定挑战</h2>
+            <p style="color: #ccc; font-size: 1.6em; line-height: 1.5; margin-bottom: 20px; text-align: center;">请向下滚动，点击选中上方基团再点击空槽放置，完成底部的思考题。</p>
+            
+            <div class="challenge-scroll-content">
+                
+                <div id="linear-drag-pool" class="drag-pool-sticky">
+                    <div class="linear-drag" draggable="true" data-val="CH3">CH₃</div>
+                    <div class="linear-drag" draggable="true" data-val="CH2">CH₂</div>
+                    <div class="linear-drag" draggable="true" data-val="OH">OH</div>
+                    <div class="linear-drag" draggable="true" data-val="O">O</div>
+                </div>
+
+                <div class="challenge-item">
+                    <div class="challenge-snapshot-wrapper">
+                        <h4 style="color: #fff; font-size: 2em; margin: 0 0 15px 0;">1. 乙烷基准参照</h4>
+                        <div class="challenge-snapshot-box">
+                            <img id="img-ethane" src="" alt="乙烷截图">
+                            <div class="zoom-hint">🔍 滚轮缩放 | 拖拽平移 | 双击还原</div>
+                        </div>
+                    </div>
+                    <div class="challenge-inputs-box">
+                        <div class="challenge-title">鉴定目标 01</div>
+                        <div style="color: #00ffcc; font-size: 1.4em; font-weight: bold; margin-bottom: 10px;">拖拽拼装结构简式：</div>
+                        <div id="slots-ethane" style="display: flex; align-items: center; margin-bottom: 20px;">
+                            <div class="linear-slot" data-expected="CH3"></div><span class="struct-dash">-</span><div class="linear-slot" data-expected="CH3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="challenge-item">
+                    <div class="challenge-snapshot-wrapper">
+                        <h4 style="color: #fff; font-size: 2em; margin: 0 0 15px 0;">2. 未知结构 A</h4>
+                        <div class="challenge-snapshot-box">
+                            <img id="img-isomerA" src="" alt="结构A截图">
+                            <div class="zoom-hint">🔍 滚轮缩放 | 拖拽平移 | 双击还原</div>
+                        </div>
+                    </div>
+                    <div class="challenge-inputs-box">
+                        <div class="challenge-title">鉴定目标 02</div>
+                        <div style="color: #00ffcc; font-size: 1.4em; font-weight: bold; margin-bottom: 10px;">拖拽拼装结构简式：</div>
+                        <div id="slots-isomerA" style="display: flex; align-items: center; margin-bottom: 20px;">
+                            </div>
+                    </div>
+                </div>
+
+                <div class="challenge-item">
+                    <div class="challenge-snapshot-wrapper">
+                        <h4 style="color: #fff; font-size: 2em; margin: 0 0 15px 0;">3. 未知结构 B</h4>
+                        <div class="challenge-snapshot-box">
+                            <img id="img-isomerB" src="" alt="结构B截图">
+                            <div class="zoom-hint">🔍 滚轮缩放 | 拖拽平移 | 双击还原</div>
+                        </div>
+                    </div>
+                    <div class="challenge-inputs-box">
+                        <div class="challenge-title">鉴定目标 03</div>
+                        <div style="color: #00ffcc; font-size: 1.4em; font-weight: bold; margin-bottom: 10px;">拖拽拼装结构简式：</div>
+                        <div id="slots-isomerB" style="display: flex; align-items: center; margin-bottom: 20px;">
+                            </div>
+                    </div>
+                </div>
+
+                <div class="challenge-item" style="flex-direction: column; align-items: flex-start; background: rgba(0, 255, 204, 0.05); border-color: #00ffcc; width: 100%; box-sizing: border-box;">
+                    <div class="challenge-title" style="border-left-color: #ffaa00;">深度思考题</div>
+                    <span style="color: #ffaa00; font-size: 1.6em; font-weight: bold; display: block; margin-bottom: 15px;">
+                        请仔细观察对比上方 3D 截图，简述【未知结构 A】和【未知结构 B】在结构或原子连接方式上有什么区别？
+                    </span>
+                    <textarea id="input-difference" class="magic-input" rows="4" placeholder="写下你的发现（提示：请观察 氧/O 元素与其他元素 连接 的位置区别）..."></textarea>
+                </div>
+
+                <button id="btn-submit-structures">提交鉴定报告，解锁实验</button>
+                <p id="structure-feedback" style="text-align: center; margin-top: 20px; font-size: 2em; font-weight: bold; min-height: 50px; padding-bottom: 20px;"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="ai-trial-panel" class="magic-scroll hidden">                     
+        <h2 class="scroll-title">随堂测试</h2>                     
+        <div id="ai-content" class="ai-text-large">                         
+            <p>正在获取题目...</p>                     
+        </div>                     
+        <button id="btn-close-ai" class="magic-btn close-btn hidden"> ❌ </button>                 
+    </div>                 
+
+    <div id="evaluation-panel" class="magic-scroll hidden">                     
+        <button id="btn-close-eval" class="magic-btn close-btn"> ❌ </button>                     
+        <h2 class="scroll-title">评估报告</h2>                     
+        <div class="radar-wrapper" style="background: rgba(0,0,0,0.3); border-radius: 15px; padding: 20px;">                         
+            <canvas id="radarChart"></canvas>                     
+        </div>                     
+        <p id="eval-feedback" class="encouraging-text" style="font-size: 1.5em; text-align: center; color: #fff; margin-top: 20px; text-shadow: 1px 1px 3px #000;"></p>                     
+        <div style="text-align: center; margin-top: 30px;">                         
+            <button id="btn-download-eval" class="magic-btn" style="font-size: 1.5em; padding: 12px 30px; border-color: var(--rpg-mana); color: var(--rpg-mana); box-shadow: 0 0 20px rgba(0,255,204,0.4);"> 📥 下载证书 </button>                     
+        </div>                 
+    </div>                 
+
+    <div id="dual-isomer-popup" class="hidden dual-popup-overlay">                     
+        <div class="dual-popup-content">                         
+            <button id="btn-close-dual-popup" class="magic-btn close-btn"> ❌ </button>                         
+            <div class="dual-3d-container">                             
+                <div class="model-box" id="model-box-ethanol">                                 
+                    <div id="dual-3d-ethanol"></div>                             
+                    <h3 id="label-ethanol"> (结构 A)</h3>                                 
+                </div>                             
+                <div class="model-box" id="model-box-ether">                                 
+                    <div id="dual-3d-ether"></div>                             
+                    <h3 id="label-ether">(结构 B)</h3>                                 
+                </div>                         
+            </div>                     
+        </div>                 
+    </div>             
+
+    <script src="js/PhysicsEngine.js"></script>     
+    <script src="js/InteractionManager.js"></script>     
+    <script src="js/SceneManager.js"></script>   
+    <script src="js/RenderEngine.js"></script>   
+    <script src="js/TopologyParser.js"></script>     
+    <script src="js/ReactionDirector.js"></script>     
+    <script src="js/ChemistryEngine.js"></script>     
+    <script src="js/MiniModelRenderer.js"></script>     
+    <script src="js/UIManager.js"></script>     
+    <script src="js/AIAssistant.js"></script>     
+    <script src="js/main.js"></script> 
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. 动态创建一个充满魔法质感的截图按钮
+        const screenshotBtn = document.createElement('button');
+        screenshotBtn.id = 'btn-global-screenshot';
+        screenshotBtn.className = 'magic-btn';
+        screenshotBtn.innerHTML = '📸 截图保存';
+        screenshotBtn.title = '保存当前结构或全息图像';
+        
+        // 默认放置在左下角，不遮挡主菜单和底部实验按钮
+        screenshotBtn.style.cssText = `
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 9999999;
+            font-size: 1.2em;
+            padding: 10px 20px;
+            border-color: #00ffcc;
+            color: #00ffcc;
+            background: rgba(10, 15, 20, 0.8);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        `;
+        
+        // 添加悬浮特效
+        screenshotBtn.onmouseenter = () => {
+            screenshotBtn.style.boxShadow = '0 0 25px rgba(0, 255, 204, 0.8)';
+            screenshotBtn.style.transform = 'scale(1.05)';
+        };
+        screenshotBtn.onmouseleave = () => {
+            screenshotBtn.style.boxShadow = '0 0 15px rgba(0, 255, 204, 0.4)';
+            screenshotBtn.style.transform = 'scale(1)';
+        };
+
+        document.body.appendChild(screenshotBtn);
+
+        // 2. 核心智能截图逻辑
+        screenshotBtn.addEventListener('click', () => {
+            let targetCanvas = null;
+            let filename = '微观结构_';
+
+            // 智能判断当前哪个视图处于顶层激活状态
+            const leftPanel = document.getElementById('left-vision-panel');
+            const hologramModal = document.getElementById('hologram-modal'); // 可能存在的独立弹窗
+            const preSodiumHolo = document.getElementById('holo-preview-container'); // 知识迁移题中的预览圆窗
+
+            // 优先级 1: 如果单独的 3D 全息弹窗(如乙烷)开启了，截取全息弹窗
+            if (hologramModal && hologramModal.style.display === 'block') {
+                targetCanvas = hologramModal.querySelector('canvas');
+                filename += '3D全息视图.png';
+                if (window.currentHologramApp) {
+                    const inst = window.currentHologramApp;
+                    inst.renderer.render(inst.scene, inst.camera);
+                }
+            } 
+            // 优先级 2: 如果是在做对比题时的圆形预览窗口开启了
+            else if (preSodiumHolo && preSodiumHolo.style.display === 'block') {
+                targetCanvas = preSodiumHolo.querySelector('canvas');
+                filename += '局部全息视图.png';
+                if (window.app && window.app.uiManager && window.app.uiManager.previewRenderer) {
+                    const inst = window.app.uiManager.previewRenderer;
+                    inst.renderer.render(inst.scene, inst.camera);
+                }
+            }
+            // 优先级 3: 如果左侧 3D 参考视图开启了，截取左侧 3D 视图
+            else if (leftPanel && !leftPanel.classList.contains('hidden')) {
+                targetCanvas = document.querySelector('#main-3d-preview canvas');
+                filename += '3D参考视图.png';
+                if (window.app && window.app.uiManager && window.app.uiManager.miniRendererInstance) {
+                    const inst = window.app.uiManager.miniRendererInstance;
+                    inst.renderer.render(inst.scene, inst.camera);
+                }
+            } 
+            // 优先级 4: 默认截取主反应区 (Canvas Container)
+            else {
+                targetCanvas = document.querySelector('#canvas-container canvas');
+                filename += '主反应区.png';
+                if (window.app && window.app.sceneManager) {
+                    const sm = window.app.sceneManager;
+                    sm.renderer.render(sm.scene, sm.camera);
+                }
+            }
+
+            // 3. 执行截图与下载
+            if (!targetCanvas) {
+                if (window.app && window.app.uiManager) {
+                    window.app.uiManager.showMagicNotice('⚠️ 提示', '未找到可保存的视图画面！');
+                }
+                return;
+            }
+
+            try {
+                // 提取图像数据，背景保持透明或原本的暗色
+                const dataURL = targetCanvas.toDataURL('image/png', 1.0);
+                
+                // 创建隐藏链接触发下载
+                const link = document.createElement('a');
+                link.download = filename + Date.now() + '.png';
+                link.href = dataURL;
+                link.click();
+
+                // 调用原有的 UI 弹窗进行成功反馈
+                if (window.app && window.app.uiManager) {
+                    window.app.uiManager.showMagicNotice('📸 截图成功', '分子图像已高品质保存至您的设备！');
+                    
+                    // 按钮特效：点击后闪烁一下金光
+                    if (typeof gsap !== 'undefined') {
+                        gsap.fromTo(screenshotBtn, 
+                            { boxShadow: "0 0 30px #ffaa00", borderColor: "#ffaa00", color: "#ffaa00" }, 
+                            { boxShadow: "0 0 15px rgba(0, 255, 204, 0.4)", borderColor: "#00ffcc", color: "#00ffcc", duration: 1.5 }
+                        );
+                    }
+                }
+            } catch (err) {
+                console.error('截图失败:', err);
+                if (window.app && window.app.uiManager) {
+                    window.app.uiManager.showMagicNotice('❌ 失败', '截图保存失败，请检查浏览器安全权限。');
+                }
+            }
+        });
+    });
+    </script>
+</body> 
+</html>
