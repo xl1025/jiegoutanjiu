@@ -12,7 +12,9 @@
 /* ================= 全局基础与弹性布局 ================= */
 body, html {
     margin: 0; padding: 0; overflow: hidden;
-    font-family: 'Courier New', 'Microsoft YaHei', sans-serif;
+    /* 优先使用黑体/宋体增强识别度和力量感，同时增加行高确保视觉留白 (Visual Breathing Room) */
+    font-family: 'SimHei', 'Microsoft YaHei', 'SimSun', sans-serif;
+    line-height: 1.6;
     background-color: #050505; height: 100vh;
     /* 将整个页面改为纵向弹性布局，以便分离顶部导航和下方3D空间 */
     display: flex; 
@@ -198,7 +200,7 @@ body, html {
 .close-btn { position: absolute; top: 15px; right: 15px; background: rgba(255, 68, 68, 0.2) !important; border-color: var(--rpg-danger) !important; color: var(--rpg-danger) !important; border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center; font-size: 1.2em; cursor: pointer; transition: 0.3s; }
 .close-btn:hover { background: rgba(255, 68, 68, 0.5) !important; transform: scale(1.1); }
 
-/* 3倍字号专属类 */
+/* 3倍字号专属类 - 配合大屏展示 */
 .ai-text-large { font-size: 300%; line-height: 1.6; font-weight: bold; color: #fff; }
 .ai-text-large .quiz-question { color: var(--rpg-gold); margin-bottom: 30px; text-shadow: 2px 2px 5px #000; }
 .ai-text-large .quiz-option { font-size: 1em; margin: 20px 0; padding: 25px; background: rgba(0, 0, 0, 0.5); border: 2px solid var(--rpg-border); border-radius: 12px; display: block; width: 100%; text-align: left; transition: all 0.3s; cursor: pointer; color: #fff; }
@@ -244,8 +246,6 @@ body, html {
 .action-bar.split-mode .rune-btn { width: 55px; height: 55px; font-size: 1.6em; }
 .action-bar.split-mode .spell-btn { width: 55px; height: 55px; font-size: 1.4em; } /* 分屏模式下同样保持圆润饱满的符号按钮 */
 
-/* ---- 在您的 style.css 文件最底部追加以下内容 ---- */
-
 /* ================= 响应式双 3D 弹窗样式 ================= */
 .dual-popup-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -265,4 +265,130 @@ body, html {
     flex: 1; border: 2px solid #555; background: rgba(0,0,0,0.6); border-radius: 10px;
     display: flex; flex-direction: column; align-items: center; min-width: 300px;
     box-shadow: inset 0 0 20px rgba(0,0,0,0.8); padding: 10px;
+}
+
+
+/* ================= 桌面大屏优化 ================= */
+/* 3D主视口宽度控制在 3/4，防止遮盖操作 UI */
+@media screen and (min-width: 1025px) {
+    #canvas-container {
+        width: 75%;
+        left: 12.5%; /* 居中显示 */
+    }
+}
+
+/* ================= 响应式布局：平板端 (max-width: 1024px) ================= */
+@media screen and (max-width: 1024px) {
+    /* 顶部导航自适应折行 */
+    .magic-top-bar {
+        height: auto;
+        flex-direction: column;
+        padding: 15px;
+        gap: 15px;
+    }
+    .header-left {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .magic-nav-bar {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    /* 恢复视口比例 */
+    #canvas-container { width: 100%; left: 0; }
+
+    /* 左侧 3D 视图面板稍微调整占比 */
+    #left-vision-panel { width: 45%; }
+    
+    /* 闯关挑战面板堆叠 */
+    .challenge-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .challenge-snapshot-box { height: 320px; }
+    
+    /* 字体大小根据屏幕等比回缩，避免平板上 3em 撑爆屏幕 */
+    .model-box h3 { font-size: 2.2em !important; }
+    .ai-text-large { font-size: 220%; }
+}
+
+/* ================= 响应式布局：手机端 (max-width: 768px) ================= */
+@media screen and (max-width: 768px) {
+    /* 核心布局改为上下堆叠，释放横向空间 */
+    #integrated-layout { flex-direction: column; }
+    
+    /* 左侧参考视图变为顶部折叠视图，限制高度 */
+    #left-vision-panel {
+        width: 100%;
+        height: 35vh; 
+        border-right: none;
+        border-bottom: 3px solid var(--rpg-border);
+    }
+    #left-vision-panel.hidden {
+        height: 0;
+        border-bottom: none;
+    }
+
+    /* 缩小标题与导航按钮，保证单手操作便利 */
+    .game-logo { font-size: 1.2em; }
+    .nav-btn { font-size: 1em; padding: 6px 12px; }
+
+    /* 底部操作条极限紧凑化，保留大触控面积 */
+    .action-bar {
+        width: 90%;
+        bottom: 15px !important;
+        padding: 10px;
+        gap: 10px;
+        flex-wrap: wrap; 
+    }
+    .rune-btn, .spell-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 1.2em;
+    }
+    .skill-label { font-size: 0.85em; top: -25px; }
+    .skill-divider { height: 40px; }
+
+    /* 系统菜单小按钮缩放 */
+    .system-menu .magic-btn {
+        width: 38px; height: 38px; font-size: 1.2em;
+    }
+
+    /* 独立双 3D 弹窗全屏化 */
+    .dual-popup-content {
+        width: 95vw;
+        height: 90vh;
+        padding: 20px;
+    }
+    .dual-3d-container {
+        flex-direction: column !important;
+        overflow-y: auto;
+    }
+    .model-box { min-height: 250px; }
+    .model-box h3 { font-size: 1.6em !important; } /* 移动端字号特调 */
+
+    /* 闯关面板内字体与拖拽槽适配 */
+    .challenge-modal { width: 95vw; padding: 15px; }
+    .challenge-title { font-size: 1.5em; }
+    .linear-drag { padding: 10px 15px; font-size: 1.4em; }
+    .linear-slot { width: 60px; height: 45px; font-size: 1.4em; }
+    
+    /* 评估面板字体调整 */
+    .scroll-title { font-size: 1.8em; }
+    .ai-text-large { font-size: 150%; } 
+}
+
+/* ================= 响应式布局：极小屏手机 (max-width: 480px) ================= */
+@media screen and (max-width: 480px) {
+    .header-left { flex-direction: column; gap: 8px; text-align: center; }
+    .game-logo { font-size: 1.1em; }
+    
+    .action-bar {
+        border-radius: 12px;
+    }
+    .skill-group { gap: 8px; flex-wrap: wrap; justify-content: center; }
+    
+    .magic-btn.close-btn { width: 35px; height: 35px; font-size: 1em; top: 10px; right: 10px; }
 }
