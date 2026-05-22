@@ -278,6 +278,37 @@ body, html {
 
 /* ================= 响应式布局：平板端 (max-width: 1024px) ================= */
 @media screen and (max-width: 1024px) {
+    /* 1. 彻底解除全局锁定，恢复原生上下滑动 */
+    body, html {
+        height: auto !important;
+        min-height: 100vh;
+        overflow-y: auto !important;
+        overflow-x: hidden;
+    }
+
+    /* 2. 主体布局改为由内容撑开 */
+    #integrated-layout {
+        height: auto !important;
+        min-height: calc(100vh - 65px);
+        overflow: visible !important;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 3. 保证主舞台有足够的最小高度，确保内容显示不全时页面可上下滑动 */
+    #right-action-stage {
+        width: 100%;
+        height: auto !important;
+        min-height: 750px; 
+        overflow: visible !important;
+    }
+
+    /* 4. Canvas 高度不再是 100%，而是预留出底部 140px 的安全区，防止遮挡操作条，同时提供防误触的滑动区 */
+    #canvas-container {
+        height: calc(100% - 140px) !important;
+        position: absolute;
+    }
+
     /* 顶部导航自适应折行 */
     .magic-top-bar {
         height: auto;
@@ -294,12 +325,9 @@ body, html {
         justify-content: center;
         flex-wrap: wrap;
     }
-    
-    /* 恢复视口比例 */
-    #canvas-container { width: 100%; left: 0; }
 
     /* 左侧 3D 视图面板稍微调整占比 */
-    #left-vision-panel { width: 45%; }
+    #left-vision-panel { width: 100%; height: auto; border-right: none; border-bottom: 3px solid var(--rpg-border); }
     
     /* 闯关挑战面板堆叠 */
     .challenge-item {
@@ -308,16 +336,18 @@ body, html {
     }
     .challenge-snapshot-box { height: 320px; }
     
-    /* 字体大小根据屏幕等比回缩，避免平板上 3em 撑爆屏幕 */
+    /* 字体大小根据屏幕等比回缩 */
     .model-box h3 { font-size: 2.2em !important; }
     .ai-text-large { font-size: 220%; }
+    
+    /* 底栏改回相对底部的固定位置 */
+    .action-bar { bottom: 25px !important; }
 }
+
 
 /* ================= 响应式布局：手机端 (max-width: 768px) ================= */
 @media screen and (max-width: 768px) {
-    /* 🚀 核心布局：保留绝佳的双指缩放空间 */
     #integrated-layout { display: block; position: relative; }
-    #right-action-stage { width: 100%; height: calc(100vh - 65px); } 
     
     /* 🚀 左侧参考视图改为悬浮的“画中画” (PIP) 模式 */
     #left-vision-panel {
@@ -344,29 +374,25 @@ body, html {
     /* 🚀 底部操作条极限紧凑化，完美适配单行显示，避免换行导致遮挡 */
     .action-bar {
         width: 96%;
-        bottom: 50px !important; /* 抬高位置，避免被全面屏手机的底部小白条或 Safari 导航栏遮挡 */
         padding: 10px 5px;
         gap: 5px;
-        flex-wrap: nowrap; /* 强制单行显示，防止碳氢氧掉下去 */
+        flex-wrap: nowrap; 
     }
     .skill-group { gap: 6px; }
     .rune-btn, .spell-btn {
-        width: 42px; /* 适当缩小以保证一行能完美放下 6 个按钮 */
+        width: 42px; 
         height: 42px;
         font-size: 1.1em;
     }
     .skill-label { font-size: 0.8em; top: -22px; }
     .skill-divider { height: 35px; margin: 0 2px; }
 
-    /* 收起底栏的把手也相应抬高 */
-    .slide-handle-fixed { bottom: 20px; }
-
     /* 系统菜单小按钮缩放 */
     .system-menu .magic-btn {
         width: 38px; height: 38px; font-size: 1.2em;
     }
 
-    /* 独立双 3D 弹窗：剥除边框全屏化 */
+    /* 🚀 独立双 3D 弹窗：彻底剥除边框全屏化，改为自然上下排叠并允许滑动！ */
     .dual-popup-content {
         width: 100vw;
         height: 100vh;
@@ -375,18 +401,18 @@ body, html {
         border-radius: 0;
         padding: 55px 10px 15px 10px; 
         box-sizing: border-box;
+        overflow-y: auto !important; /* 核心：允许在手机端双 3D 面板上下滑动 */
+        display: block !important; /* 取消原有的 flex 强制等分压缩 */
     }
     .dual-3d-container {
-        flex-direction: column !important;
-        flex: 1;
-        gap: 15px;
+        display: block !important;
         margin-top: 0;
     }
     .model-box { 
-        flex: 1; 
-        min-height: 0; 
-        height: 100%;
-        border-width: 1px;
+        flex: none; 
+        height: 400px !important; /* 强制保障每个分子都有极其充足的 400px 高度 */
+        margin-bottom: 25px;
+        border-width: 2px;
     }
     .model-box h3 { font-size: 1.8em !important; margin: 5px 0 0 0 !important; padding-top: 8px; border-top-width: 1px; } 
 
@@ -419,11 +445,12 @@ body, html {
     .magic-btn.close-btn { width: 35px; height: 35px; font-size: 1em; top: 10px; right: 10px; }
 }
 
-/* ================= 完美平衡：允许双指捏合缩放 UI，单指滑动旋转模型 ================= */
+/* ================= 完美平衡：允许双指捏合缩放 UI，单指滑动旋转模型，底部空白区自然翻页 ================= */
 #canvas-container, 
 .mini-model-container, 
 .model-box, 
 .challenge-snapshot-box {
-    /* 将 none 改为 pinch-zoom，把双指权限交还给浏览器，解决无法缩放网页的问题 */
-    touch-action: pinch-zoom !important; 
+    /* 允许原生上下滑动以匹配滚动条，并支持双指缩放操作。 */
+    /* 在 3D 画布区域双指捏合时会缩放页面，单指滑动将触发 Three.js 旋转。 */
+    touch-action: pan-y pinch-zoom !important; 
 }
