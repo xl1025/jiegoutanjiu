@@ -175,12 +175,6 @@
 
 </head> 
 <body>     
-    <div id="landscape-reminder">
-        <div class="phone-icon"></div>
-        <h2 style="margin:0; font-size: 2em; letter-spacing: 2px; text-shadow: 0 0 15px rgba(0,255,204,0.6);">请旋转设备至横屏</h2>
-        <p style="color: #aaa; font-size: 1.2em; margin-top: 15px; padding: 0 20px;">为了获得最佳的 3D 炼金体验<br>请关闭手机方向锁定，并横向握持设备</p>
-    </div>
-
     <header id="global-header" class="magic-top-bar">         
         <div class="header-left">             
             <h1 class="game-logo">🧪 炼金工坊：分子结构的奥秘</h1>             
@@ -371,36 +365,85 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // 1. 动态创建一个充满魔法质感的截图按钮 (纯图标模式)
+        const systemMenu = document.getElementById('system-menu');
+
+        // ================= 1. 动态创建截图按钮 =================
         const screenshotBtn = document.createElement('button');
         screenshotBtn.id = 'btn-global-screenshot';
         screenshotBtn.className = 'magic-btn';
-        screenshotBtn.innerHTML = '📸'; // 只保留相机图标
+        screenshotBtn.innerHTML = '📸'; 
         screenshotBtn.title = '截图保存';
-        
-        // 覆盖特定颜色以保持和主题一致（大小和形状会自动继承 .system-menu .magic-btn 的圆形设定）
         screenshotBtn.style.color = '#00ffcc';
         screenshotBtn.style.borderColor = '#00ffcc';
         
-        // 2. 将其追加到右上角的系统菜单中，它会自动排在其他按钮（如眼睛按钮）的下方
-        const systemMenu = document.getElementById('system-menu');
         if (systemMenu) {
             systemMenu.appendChild(screenshotBtn);
         } else {
             document.body.appendChild(screenshotBtn);
         }
 
-        // 3. 核心智能截图逻辑
+        // ================= 2. 动态创建全屏/横屏切换按钮 =================
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.id = 'btn-global-fullscreen';
+        fullscreenBtn.className = 'magic-btn';
+        fullscreenBtn.innerHTML = '⛶'; // 全屏图标
+        fullscreenBtn.title = '全屏与横屏模式';
+        fullscreenBtn.style.color = '#00ffcc';
+        fullscreenBtn.style.borderColor = '#00ffcc';
+        
+        if (systemMenu) {
+            systemMenu.appendChild(fullscreenBtn);
+        } else {
+            document.body.appendChild(fullscreenBtn);
+        }
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                // 请求全屏
+                document.documentElement.requestFullscreen().then(() => {
+                    fullscreenBtn.innerHTML = '✖'; // 变成关闭图标
+                    // 尝试调用系统底层强制横向锁定 (部分移动端浏览器支持)
+                    if (screen.orientation && screen.orientation.lock) {
+                        screen.orientation.lock('landscape').catch(err => {
+                            console.log('设备不支持自动旋转锁定或需要用户手动旋转屏幕:', err);
+                        });
+                    }
+                }).catch(err => {
+                    console.error('全屏请求被拒绝:', err);
+                    if (window.app && window.app.uiManager) {
+                        window.app.uiManager.showMagicNotice('⚠️ 提示', '无法进入全屏，请检查浏览器权限设置。');
+                    }
+                });
+            } else {
+                // 退出全屏
+                document.exitFullscreen().then(() => {
+                    fullscreenBtn.innerHTML = '⛶';
+                    if (screen.orientation && screen.orientation.unlock) {
+                        screen.orientation.unlock();
+                    }
+                });
+            }
+        });
+
+        // 监听系统级全屏切换 (防止按 ESC 退出全屏时图标不更新)
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                fullscreenBtn.innerHTML = '⛶';
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+            }
+        });
+
+        // ================= 3. 核心智能截图逻辑 =================
         screenshotBtn.addEventListener('click', () => {
             let targetCanvas = null;
             let filename = '微观结构_';
 
-            // 智能判断当前哪个视图处于顶层激活状态
             const leftPanel = document.getElementById('left-vision-panel');
-            const hologramModal = document.getElementById('hologram-modal'); // 可能存在的独立弹窗
-            const preSodiumHolo = document.getElementById('holo-preview-container'); // 知识迁移题中的预览圆窗
+            const hologramModal = document.getElementById('hologram-modal'); 
+            const preSodiumHolo = document.getElementById('holo-preview-container'); 
 
-            // 优先级 1: 如果单独的 3D 全息弹窗(如乙烷)开启了，截取全息弹窗
             if (hologramModal && hologramModal.style.display === 'block') {
                 targetCanvas = hologramModal.querySelector('canvas');
                 filename += '3D全息视图.png';
@@ -409,7 +452,6 @@
                     inst.renderer.render(inst.scene, inst.camera);
                 }
             } 
-            // 优先级 2: 如果是在做对比题时的圆形预览窗口开启了
             else if (preSodiumHolo && preSodiumHolo.style.display === 'block') {
                 targetCanvas = preSodiumHolo.querySelector('canvas');
                 filename += '局部全息视图.png';
@@ -418,7 +460,6 @@
                     inst.renderer.render(inst.scene, inst.camera);
                 }
             }
-            // 优先级 3: 如果左侧 3D 参考视图开启了，截取左侧 3D 视图
             else if (leftPanel && !leftPanel.classList.contains('hidden')) {
                 targetCanvas = document.querySelector('#main-3d-preview canvas');
                 filename += '3D参考视图.png';
@@ -427,7 +468,6 @@
                     inst.renderer.render(inst.scene, inst.camera);
                 }
             } 
-            // 优先级 4: 默认截取主反应区 (Canvas Container)
             else {
                 targetCanvas = document.querySelector('#canvas-container canvas');
                 filename += '主反应区.png';
@@ -437,7 +477,6 @@
                 }
             }
 
-            // 4. 执行截图与下载
             if (!targetCanvas) {
                 if (window.app && window.app.uiManager) {
                     window.app.uiManager.showMagicNotice('⚠️ 提示', '未找到可保存的视图画面！');
@@ -446,20 +485,15 @@
             }
 
             try {
-                // 提取图像数据，背景保持透明或原本的暗色
                 const dataURL = targetCanvas.toDataURL('image/png', 1.0);
-                
-                // 创建隐藏链接触发下载
                 const link = document.createElement('a');
                 link.download = filename + Date.now() + '.png';
                 link.href = dataURL;
                 link.click();
 
-                // 调用原有的 UI 弹窗进行成功反馈
                 if (window.app && window.app.uiManager) {
                     window.app.uiManager.showMagicNotice('📸 截图成功', '分子图像已高品质保存至您的设备！');
                     
-                    // 按钮特效：点击后闪烁一下金光
                     if (typeof gsap !== 'undefined') {
                         gsap.fromTo(screenshotBtn, 
                             { boxShadow: "0 0 30px #ffaa00", borderColor: "#ffaa00", color: "#ffaa00" }, 
