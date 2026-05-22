@@ -267,6 +267,7 @@ body, html {
     box-shadow: inset 0 0 20px rgba(0,0,0,0.8); padding: 10px;
 }
 
+
 /* ================= 桌面大屏优化 ================= */
 /* 3D主视口宽度控制在 3/4，防止遮盖操作 UI */
 @media screen and (min-width: 1025px) {
@@ -412,13 +413,4 @@ body, html {
     .skill-group { gap: 8px; flex-wrap: wrap; justify-content: center; }
     
     .magic-btn.close-btn { width: 35px; height: 35px; font-size: 1em; top: 10px; right: 10px; }
-}
-
-/* ================= 移动端 3D 引擎触控防干扰优化 ================= */
-#canvas-container, 
-.mini-model-container, 
-.model-box, 
-.challenge-snapshot-box {
-    /* 关键属性：告诉浏览器在这里不要拦截滚动和缩放手势，全部直接移交给底层 Three.js 处理 */
-    touch-action: none !important; 
 }
