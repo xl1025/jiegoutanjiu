@@ -365,32 +365,53 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const systemMenu = document.getElementById('system-menu');
-
-        // ================= 1. 动态创建截图按钮 =================
+        // 1. 动态创建一个充满魔法质感的截图按钮
         const screenshotBtn = document.createElement('button');
         screenshotBtn.id = 'btn-global-screenshot';
         screenshotBtn.className = 'magic-btn';
-        screenshotBtn.innerHTML = '📸'; 
-        screenshotBtn.title = '截图保存';
-        screenshotBtn.style.color = '#00ffcc';
-        screenshotBtn.style.borderColor = '#00ffcc';
+        screenshotBtn.innerHTML = '📸 截图保存';
+        screenshotBtn.title = '保存当前结构或全息图像';
         
-        if (systemMenu) {
-            systemMenu.appendChild(screenshotBtn);
-        } else {
-            document.body.appendChild(screenshotBtn);
-        }
+        // 默认放置在左下角，不遮挡主菜单和底部实验按钮
+        screenshotBtn.style.cssText = `
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 9999999;
+            font-size: 1.2em;
+            padding: 10px 20px;
+            border-color: #00ffcc;
+            color: #00ffcc;
+            background: rgba(10, 15, 20, 0.8);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        `;
+        
+        // 添加悬浮特效
+        screenshotBtn.onmouseenter = () => {
+            screenshotBtn.style.boxShadow = '0 0 25px rgba(0, 255, 204, 0.8)';
+            screenshotBtn.style.transform = 'scale(1.05)';
+        };
+        screenshotBtn.onmouseleave = () => {
+            screenshotBtn.style.boxShadow = '0 0 15px rgba(0, 255, 204, 0.4)';
+            screenshotBtn.style.transform = 'scale(1)';
+        };
 
-        // ================= 2. 核心智能截图逻辑 =================
+        document.body.appendChild(screenshotBtn);
+
+        // 2. 核心智能截图逻辑
         screenshotBtn.addEventListener('click', () => {
             let targetCanvas = null;
             let filename = '微观结构_';
 
+            // 智能判断当前哪个视图处于顶层激活状态
             const leftPanel = document.getElementById('left-vision-panel');
-            const hologramModal = document.getElementById('hologram-modal'); 
-            const preSodiumHolo = document.getElementById('holo-preview-container'); 
+            const hologramModal = document.getElementById('hologram-modal'); // 可能存在的独立弹窗
+            const preSodiumHolo = document.getElementById('holo-preview-container'); // 知识迁移题中的预览圆窗
 
+            // 优先级 1: 如果单独的 3D 全息弹窗(如乙烷)开启了，截取全息弹窗
             if (hologramModal && hologramModal.style.display === 'block') {
                 targetCanvas = hologramModal.querySelector('canvas');
                 filename += '3D全息视图.png';
@@ -399,6 +420,7 @@
                     inst.renderer.render(inst.scene, inst.camera);
                 }
             } 
+            // 优先级 2: 如果是在做对比题时的圆形预览窗口开启了
             else if (preSodiumHolo && preSodiumHolo.style.display === 'block') {
                 targetCanvas = preSodiumHolo.querySelector('canvas');
                 filename += '局部全息视图.png';
@@ -407,6 +429,7 @@
                     inst.renderer.render(inst.scene, inst.camera);
                 }
             }
+            // 优先级 3: 如果左侧 3D 参考视图开启了，截取左侧 3D 视图
             else if (leftPanel && !leftPanel.classList.contains('hidden')) {
                 targetCanvas = document.querySelector('#main-3d-preview canvas');
                 filename += '3D参考视图.png';
@@ -415,6 +438,7 @@
                     inst.renderer.render(inst.scene, inst.camera);
                 }
             } 
+            // 优先级 4: 默认截取主反应区 (Canvas Container)
             else {
                 targetCanvas = document.querySelector('#canvas-container canvas');
                 filename += '主反应区.png';
@@ -424,6 +448,7 @@
                 }
             }
 
+            // 3. 执行截图与下载
             if (!targetCanvas) {
                 if (window.app && window.app.uiManager) {
                     window.app.uiManager.showMagicNotice('⚠️ 提示', '未找到可保存的视图画面！');
@@ -432,15 +457,20 @@
             }
 
             try {
+                // 提取图像数据，背景保持透明或原本的暗色
                 const dataURL = targetCanvas.toDataURL('image/png', 1.0);
+                
+                // 创建隐藏链接触发下载
                 const link = document.createElement('a');
                 link.download = filename + Date.now() + '.png';
                 link.href = dataURL;
                 link.click();
 
+                // 调用原有的 UI 弹窗进行成功反馈
                 if (window.app && window.app.uiManager) {
                     window.app.uiManager.showMagicNotice('📸 截图成功', '分子图像已高品质保存至您的设备！');
                     
+                    // 按钮特效：点击后闪烁一下金光
                     if (typeof gsap !== 'undefined') {
                         gsap.fromTo(screenshotBtn, 
                             { boxShadow: "0 0 30px #ffaa00", borderColor: "#ffaa00", color: "#ffaa00" }, 
