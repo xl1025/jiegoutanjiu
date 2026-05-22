@@ -175,6 +175,12 @@
 
 </head> 
 <body>     
+    <div id="landscape-reminder">
+        <div class="phone-icon"></div>
+        <h2 style="margin:0; font-size: 2em; letter-spacing: 2px; text-shadow: 0 0 15px rgba(0,255,204,0.6);">请旋转设备至横屏</h2>
+        <p style="color: #aaa; font-size: 1.2em; margin-top: 15px; padding: 0 20px;">为了获得最佳的 3D 炼金体验<br>请关闭手机方向锁定，并横向握持设备</p>
+    </div>
+
     <header id="global-header" class="magic-top-bar">         
         <div class="header-left">             
             <h1 class="game-logo">🧪 炼金工坊：分子结构的奥秘</h1>             
@@ -384,7 +390,7 @@
             document.body.appendChild(screenshotBtn);
         }
 
-        // 2. 核心智能截图逻辑
+        // 3. 核心智能截图逻辑
         screenshotBtn.addEventListener('click', () => {
             let targetCanvas = null;
             let filename = '微观结构_';
@@ -431,7 +437,7 @@
                 }
             }
 
-            // 3. 执行截图与下载
+            // 4. 执行截图与下载
             if (!targetCanvas) {
                 if (window.app && window.app.uiManager) {
                     window.app.uiManager.showMagicNotice('⚠️ 提示', '未找到可保存的视图画面！');
