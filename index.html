@@ -458,6 +458,44 @@
                 }
             }
         });
+
+        // ================= 3. 移动端沉浸式体验：操作时自动隐藏标题栏 =================
+        const canvasContainer = document.getElementById('canvas-container');
+        const globalHeader = document.getElementById('global-header');
+        
+        // 创建一个用于展开菜单的悬浮按钮
+        const showHeaderBtn = document.createElement('div');
+        showHeaderBtn.id = 'btn-show-header';
+        showHeaderBtn.innerHTML = '🔽 展开菜单';
+        showHeaderBtn.style.cssText = `
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            background: rgba(30, 20, 10, 0.9); border: 2px solid var(--rpg-border); border-top: none;
+            border-radius: 0 0 12px 12px; color: var(--rpg-gold); padding: 6px 20px; font-size: 1.2em;
+            z-index: 10000; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.6); display: none; font-weight: bold;
+            text-shadow: 1px 1px 2px #000; transition: background 0.3s;
+        `;
+        document.body.appendChild(showHeaderBtn);
+
+        // 当用户在主反应区（Canvas）内操作时，自动隐藏顶部菜单栏
+        canvasContainer.addEventListener('pointerdown', () => {
+            if (window.innerWidth <= 1024) { // 仅在手机和平板端生效
+                if (!document.body.classList.contains('hide-header')) {
+                    document.body.classList.add('hide-header');
+                    globalHeader.style.display = 'none';
+                    showHeaderBtn.style.display = 'block';
+                    // 触发一次 resize 让 3D 引擎重新撑满屏幕
+                    setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+                }
+            }
+        });
+
+        // 点击下拉按钮恢复标题栏
+        showHeaderBtn.addEventListener('click', () => {
+            document.body.classList.remove('hide-header');
+            globalHeader.style.display = 'flex'; // 恢复魔法导航栏的 flex 布局
+            showHeaderBtn.style.display = 'none';
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+        });
     });
     </script>
 </body> 
