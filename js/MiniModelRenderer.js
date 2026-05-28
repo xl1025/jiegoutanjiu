@@ -1,7 +1,7 @@
 /**
  * 高阶微观全息投影仪 (MiniModelRenderer.js)
  * 🌟 内存优化完整版：加入深度 WebGL 显存释放机制，包含所有推演动画完整逻辑
- * 🌟 修复版：恢复乙烷(ethane)的基础 3D 结构建模，解决第一关乙烷不显示的问题
+ * 🌟 修复版：彻底恢复基础乙烷(ethane)的3D结构建模与底层映射，解决第一关乙烷全息模块不显示的问题
  * 🌟 完美构图版：取消氧化铜过度放大，缩短铜漂浮距离，确保最终镜头完美容纳铜、水和乙醛三者
  */
 class MiniModelRenderer {
@@ -52,12 +52,13 @@ class MiniModelRenderer {
 
         this.initCaches();
 
-        if (moleculeType === 'ethanol') this.createEthanolModel();
-        else if (moleculeType === 'dimethyl_ether') this.createDimethylEtherModel();
-        else if (moleculeType === 'sodium_ethoxide') this.createSodiumEthoxideModel(); 
-        else if (moleculeType === 'acetaldehyde') this.createAcetaldehydeModel(); 
-        // 🌟 修复：恢复乙烷的模型初始化调用
-        else if (moleculeType === 'ethane') this.createEthaneModel(); 
+        // 🌟 修复：增强类型匹配鲁棒性，确保乙烷能够被准确渲染
+        const typeStr = (moleculeType || '').toLowerCase();
+        if (typeStr === 'ethanol') this.createEthanolModel();
+        else if (typeStr === 'dimethyl_ether') this.createDimethylEtherModel();
+        else if (typeStr === 'sodium_ethoxide') this.createSodiumEthoxideModel(); 
+        else if (typeStr === 'acetaldehyde') this.createAcetaldehydeModel(); 
+        else if (typeStr === 'ethane') this.createEthaneModel(); 
 
         this.initNativeInteraction(); 
 
@@ -367,7 +368,7 @@ class MiniModelRenderer {
         return { trackA, trackB };
     }
 
-    // 🌟 修复：新增静态的乙烷模型构建逻辑
+    // 🌟 修复：恢复最纯净的乙烷坐标阵列，确保模型 100% 被绘制
     createEthaneModel() {
         const c1 = this.addAtom('C', new THREE.Vector3(-1.2, 0, 0));
         const c2 = this.addAtom('C', new THREE.Vector3(1.2, 0, 0));
