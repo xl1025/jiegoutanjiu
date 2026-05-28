@@ -1,8 +1,8 @@
 /**
  * 高阶微观全息投影仪 (MiniModelRenderer.js)
- * 🌟 轻量化物理删除版：彻底拔除冗余的“乙烷/水与钠对比实验”的几何生成与动画逻辑，大幅释放WebGL显存！
- * 🌟 内存优化完整版：保留了所有核心化学推演动画逻辑，并配备深度显存释放机制。
- * 🌟 完美构图版：取消氧化铜过度放大，缩短铜漂浮距离，确保最终镜头完美容纳铜、水和乙醛三者。
+ * 🌟 内存优化完整版：加入深度 WebGL 显存释放机制，包含所有推演动画完整逻辑
+ * 🌟 修复版：恢复乙烷(ethane)的基础 3D 结构建模，解决第一关乙烷不显示的问题
+ * 🌟 完美构图版：取消氧化铜过度放大，缩短铜漂浮距离，确保最终镜头完美容纳铜、水和乙醛三者
  */
 class MiniModelRenderer {
     constructor(containerId, moleculeType) {
@@ -56,6 +56,8 @@ class MiniModelRenderer {
         else if (moleculeType === 'dimethyl_ether') this.createDimethylEtherModel();
         else if (moleculeType === 'sodium_ethoxide') this.createSodiumEthoxideModel(); 
         else if (moleculeType === 'acetaldehyde') this.createAcetaldehydeModel(); 
+        // 🌟 修复：恢复乙烷的模型初始化调用
+        else if (moleculeType === 'ethane') this.createEthaneModel(); 
 
         this.initNativeInteraction(); 
 
@@ -181,9 +183,7 @@ class MiniModelRenderer {
             this.pivot.traverse(obj => gsap.killTweensOf(obj));
         }
 
-        if (this.geometryCache) {
-            Object.values(this.geometryCache).forEach(geo => geo.dispose());
-        }
+        if (this.geometryCache) Object.values(this.geometryCache).forEach(geo => geo.dispose());
         if (this.materialCache) {
             Object.values(this.materialCache).forEach(mat => {
                 if (mat.map) mat.map.dispose(); 
@@ -208,9 +208,7 @@ class MiniModelRenderer {
             if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
         }
         
-        if (this.tooltip && this.tooltip.parentNode) {
-            this.tooltip.parentNode.removeChild(this.tooltip);
-        }
+        if (this.tooltip && this.tooltip.parentNode) this.tooltip.parentNode.removeChild(this.tooltip);
     }
 
     resetIdleTimer() { this.interactionState.lastInteractionTime = Date.now(); }
@@ -367,6 +365,21 @@ class MiniModelRenderer {
         this.brokenHalves.push(trackB);
 
         return { trackA, trackB };
+    }
+
+    // 🌟 修复：新增静态的乙烷模型构建逻辑
+    createEthaneModel() {
+        const c1 = this.addAtom('C', new THREE.Vector3(-1.2, 0, 0));
+        const c2 = this.addAtom('C', new THREE.Vector3(1.2, 0, 0));
+        this.addBond(c1, c2);
+        
+        this.addBond(c1, this.addAtom('H', new THREE.Vector3(-1.9, 1.1, 0)));
+        this.addBond(c1, this.addAtom('H', new THREE.Vector3(-1.9, -0.5, 1.0)));
+        this.addBond(c1, this.addAtom('H', new THREE.Vector3(-1.9, -0.5, -1.0)));
+        
+        this.addBond(c2, this.addAtom('H', new THREE.Vector3(1.9, 1.1, 0)));
+        this.addBond(c2, this.addAtom('H', new THREE.Vector3(1.9, -0.5, 1.0)));
+        this.addBond(c2, this.addAtom('H', new THREE.Vector3(1.9, -0.5, -1.0)));
     }
 
     createEthanolModel() {
