@@ -1,6 +1,7 @@
 /** 互动 UI 管理器 (UIManager.js) 
  * 🌟 专家终极版：深度打磨综合评测模块，升级为 500分 五维立体评价体系！
- * 🌟 修复版：恢复了乙烷 (ethane) 结构探测、快照保存以及视图调用的核心逻辑，确保第一关完全正常。
+ * 🌟 修复版：针对乙烷(ethane)进行专属防呆机制处理，一旦拼接出乙烷，必然会触发界面提示并激活3D全息窗口。
+ * 🌟 居中大屏版：错题弹窗完美居中，字体放大，增加纯文本(TXT)下载复习功能。
  */
 class UIManager {
     constructor() {
@@ -8,7 +9,7 @@ class UIManager {
             foundIsomer: false, watchedNa: false, watchedCu: false, 
             eqSodiumPassed: false, eqOxidationPassed: false, finalQuizScore: 0,
             quizScore: 0, startTime: Date.now(), wrongQuestions: [], linearStructuresPassed: false,
-            finalCompleted: false 
+            finalCompleted: false, notifiedEthane: false
         };
         this.currentRenderedType = null;
         this.currentMoleculeType = null;
@@ -297,7 +298,6 @@ class UIManager {
         
         let targetComp = null;
         for (let comp of components) {
-            // 🌟 修复：恢复乙烷(ethane)的快照探测逻辑
             if (targetType === 'ethane' && comp.cCount === 2 && comp.hCount === 6 && comp.oCount === 0) {
                 targetComp = comp; break;
             }
@@ -1041,7 +1041,6 @@ class UIManager {
             
             if (id === 'btn-toggle-challenge') {
                 if (this.currentLevel === 1) {
-                    // 🌟 修复：保证弹窗中包含乙烷(ethane)在内的截图都能被正常渲染
                     const elEthane = document.getElementById('img-ethane');
                     if (elEthane) elEthane.src = this.snapshots['ethane'] || '';
                     
@@ -1202,7 +1201,6 @@ class UIManager {
                     case 'sodium_ethoxide': return "产物结构视图";
                     case 'acetaldehyde': return "产物结构视图";
                     case 'ethanol': return "当前主视图";
-                    // 🌟 修复：增加乙烷视图的标题文案
                     case 'ethane': return "结构视图"; 
                     default: return "3D视图";
                 }
@@ -1626,21 +1624,17 @@ class UIManager {
         }
     }
 
-    // 🌟 修复：恢复 hasEthane 参数，处理乙烷的 3D 解锁及判断
+    // 🌟 修复：严密恢复乙烷 (ethane) 在 UI 层的检测判断与解锁逻辑
     updateStructureState(hasEthanol, hasDimethylEther, hasEthane, ethaneComponent) {
         if (!this.builtOrder) this.builtOrder = [];
         
         if (hasEthanol && !this.builtOrder.includes('ethanol')) this.builtOrder.push('ethanol');
         if (hasDimethylEther && !this.builtOrder.includes('dimethyl_ether')) this.builtOrder.push('dimethyl_ether');
 
-        // 🌟 修复：恢复乙烷(ethane)被拼装成功时的快照生成逻辑
+        // 恢复捕捉快照的功能
         if (hasEthane && !this.snapshots['ethane']) this.snapshots['ethane'] = this.captureIsolatedImage('ethane');
         if (hasEthanol && !this.snapshots['ethanol']) this.snapshots['ethanol'] = this.captureIsolatedImage('ethanol');
         if (hasDimethylEther && !this.snapshots['dimethyl_ether']) this.snapshots['dimethyl_ether'] = this.captureIsolatedImage('dimethyl_ether');
-
-        // 🌟 修复：记录组件引用，保持原有物理逻辑不中断
-        if (hasEthane) this.ethaneComponentRef = ethaneComponent;
-        else this.ethaneComponentRef = null;
 
         const btnToggle = document.getElementById('btn-toggle-main-3d');
         
@@ -1662,7 +1656,7 @@ class UIManager {
             }
         }
 
-        // 🌟 修复：判断空视图状态必须包含 !hasEthane
+        // 🌟 修复：必须确保未拼装出乙烷时才会禁用按钮
         if (!hasEthanol && !hasDimethylEther && !hasEthane) {
             if (typeof this.hideMain3DView === 'function') this.hideMain3DView();
             if (btnToggle) {
@@ -1700,7 +1694,7 @@ class UIManager {
                     }
                 }
             }
-            // 🌟 修复：增加当用户拼接出乙烷时的 3D 视图解锁逻辑
+            // 🌟 修复：严密恢复单独拼出乙烷(ethane)时的处理分支，解锁3D视图
             else if (hasEthane) {
                 if (btnToggle) { 
                     btnToggle.innerHTML = '👁️'; btnToggle.onclick = null; 
@@ -1710,6 +1704,11 @@ class UIManager {
                 
                 if (this.currentLevel === 1) {
                     this.unlockMain3DView('ethane'); 
+                    // 增加提示：让用户知道已经成功解锁基础全息图
+                    if (!this.userStats.notifiedEthane) {
+                        this.userStats.notifiedEthane = true;
+                        this.showMagicNotice("基础结构完成", "这是乙烷(Ethane)！点击左侧发光的 👁️ 按钮查看 3D 全息模型。"); 
+                    }
                 }
             }
         }
