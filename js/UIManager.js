@@ -1,9 +1,6 @@
 /** 互动 UI 管理器 (UIManager.js) 
  * 🌟 专家终极版：深度打磨综合评测模块，升级为 500分 五维立体评价体系！
- * 🌟 错题本进化版：内置 Canvas 长文本自动换行与高度自适应算法，确保高定证书错题 100% 完整显示。
- * 🌟 聚焦版：彻底删减冗余的乙烷、水对比实验，直入核心取代反应，降低认知负荷。
- * 🌟 视觉留白版：增加错题解析行距，采用“宋体”与“黑体”搭配，增强阅读舒适度。
- * 🌟 居中大屏版：错题弹窗完美居中，字体放大，增加纯文本(TXT)下载复习功能。
+ * 🌟 修复版：恢复了乙烷 (ethane) 结构探测、快照保存以及视图调用的核心逻辑，确保第一关完全正常。
  */
 class UIManager {
     constructor() {
@@ -300,6 +297,10 @@ class UIManager {
         
         let targetComp = null;
         for (let comp of components) {
+            // 🌟 修复：恢复乙烷(ethane)的快照探测逻辑
+            if (targetType === 'ethane' && comp.cCount === 2 && comp.hCount === 6 && comp.oCount === 0) {
+                targetComp = comp; break;
+            }
             if (targetType === 'ethanol' && comp.cCount === 2 && comp.hCount === 6 && comp.oCount === 1) {
                 let hasCOH = false;
                 comp.bonds.forEach(b => {
@@ -1040,8 +1041,15 @@ class UIManager {
             
             if (id === 'btn-toggle-challenge') {
                 if (this.currentLevel === 1) {
-                    document.getElementById('img-isomerA').src = this.snapshots[this.builtOrder[0]] || '';
-                    document.getElementById('img-isomerB').src = this.snapshots[this.builtOrder[1]] || '';
+                    // 🌟 修复：保证弹窗中包含乙烷(ethane)在内的截图都能被正常渲染
+                    const elEthane = document.getElementById('img-ethane');
+                    if (elEthane) elEthane.src = this.snapshots['ethane'] || '';
+                    
+                    const elIsomerA = document.getElementById('img-isomerA');
+                    if (elIsomerA) elIsomerA.src = this.snapshots[this.builtOrder[0]] || '';
+                    
+                    const elIsomerB = document.getElementById('img-isomerB');
+                    if (elIsomerB) elIsomerB.src = this.snapshots[this.builtOrder[1]] || '';
 
                     const expectedA = this.builtOrder[0] || 'ethanol';
                     const expectedB = this.builtOrder[1] || 'dimethyl_ether';
@@ -1194,6 +1202,8 @@ class UIManager {
                     case 'sodium_ethoxide': return "产物结构视图";
                     case 'acetaldehyde': return "产物结构视图";
                     case 'ethanol': return "当前主视图";
+                    // 🌟 修复：增加乙烷视图的标题文案
+                    case 'ethane': return "结构视图"; 
                     default: return "3D视图";
                 }
             };
@@ -1355,7 +1365,6 @@ class UIManager {
         if(!panel) return;
         panel.classList.remove('hidden');
 
-        // 🌟 升级为 5 维立体评价体系 (满分500分)
         const score1 = 20 + (this.userStats.foundIsomer ? 80 : 0);
         const score2 = this.userStats.linearStructuresPassed ? 100 : 0;
         const score3 = (this.userStats.watchedNa ? 50 : 0) + (this.userStats.watchedCu ? 50 : 0);
@@ -1414,11 +1423,8 @@ class UIManager {
         panel.id = 'wrong-question-panel';
         panel.className = 'magic-scroll';
         
-        // 1. 纯正居中显示 (fixed定位) 
-        // 2. 增加视觉留白 (padding: 60px) 和 毛玻璃赛博朋克质感
         panel.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 1400px; max-height: 85vh; z-index: 9999999; background: rgba(20,20,30,0.95); border: 3px solid #ff4444; border-radius: 15px; padding: 60px; overflow-y: auto; box-shadow: 0 0 60px rgba(0,0,0,0.9); backdrop-filter: blur(12px); display: flex; flex-direction: column;';
         
-        // 标题应用黑体 (Heiti)，字号放大，增强力量感与大屏幕辨识度
         let content = `<h2 style="color: #ff4444; text-align: center; margin-bottom: 40px; font-size: 3.5em; font-family: 'Heiti', 'SimHei', sans-serif; text-shadow: 2px 2px 5px #000;">错题档案本</h2>`;
         
         if (!this.userStats.wrongQuestions || this.userStats.wrongQuestions.length === 0) {
@@ -1427,7 +1433,6 @@ class UIManager {
             this.userStats.wrongQuestions.forEach((wq, index) => {
                 let modText = ["", "探究阶段", "取代实验", "氧化实验", "最终大考"][wq.module] || "考核点";
                 
-                // 正文使用宋体 (Songti) 娓娓道来，字号提升至 3em，行高 1.8 确保视觉呼吸空间不拥挤
                 content += `
                     <div style="background: rgba(0,0,0,0.6); padding: 40px; border: 2px solid #ff4444; border-radius: 12px; margin-bottom: 30px; text-align: left;">
                         <div style="color: #ffaa00; font-weight: bold; margin-bottom: 20px; font-size: 2.5em; font-family: 'Heiti', sans-serif;">记录 #${index + 1} &nbsp;<span style="color:#aaa; font-size:0.8em; font-weight:normal;">(${modText})</span></div>
@@ -1437,7 +1442,6 @@ class UIManager {
             });
         }
         
-        // 底部操作区，增加下载错题按钮
         content += `
             <div style="text-align: center; margin-top: 50px; display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
                 <button id="btn-download-wq-txt" class="magic-btn" style="font-size: 2.5em; font-family: 'Heiti', sans-serif; padding: 15px 50px; border-color: #00ffcc; color: #00ffcc; box-shadow: 0 0 20px rgba(0,255,204,0.3);">⬇️ 下载错题复习(TXT)</button>
@@ -1446,8 +1450,14 @@ class UIManager {
         `;
         
         panel.innerHTML = content;
-        // 挂载到 body 以确保 fixed 绝对居中不受局部 relative 容器的限制
         document.body.appendChild(panel); 
+
+        setTimeout(() => {
+            const btnDownloadTxt = document.getElementById('btn-download-wq-txt');
+            if (btnDownloadTxt) {
+                btnDownloadTxt.onclick = () => this.downloadWrongQuestionsText();
+            }
+        }, 100);
     }
 
     downloadWrongQuestionsText() {
@@ -1456,15 +1466,12 @@ class UIManager {
             return;
         }
 
-        // 构建纯文本排版
         let textContent = "【炼金成就 - 专属错题档案本】\r\n";
         textContent += "生成时间：" + new Date().toLocaleString() + "\r\n";
         textContent += "=========================================\r\n\r\n";
         
         this.userStats.wrongQuestions.forEach((wq, index) => {
             let modText = ["", "探究阶段", "取代实验", "氧化实验", "最终大考"][wq.module] || "考核点";
-            
-            // 将 HTML 的 <br> 替换为换行，并彻底剥离其他所有样式标签，保证纯文本阅读体验
             let plainText = wq.explanation.replace(/<br\s*\/?>/gi, '\r\n').replace(/<[^>]+>/g, '').trim();
             
             textContent += `第 ${index + 1} 题 (${modText})\r\n`;
@@ -1475,7 +1482,6 @@ class UIManager {
         textContent += "=========================================\r\n";
         textContent += "复习提示：请结合课堂上的3D微观推演动画，\r\n重点回忆断键与成键的位置，温故而知新！\r\n";
 
-        // 触发浏览器原生下载文件逻辑
         const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
@@ -1510,7 +1516,6 @@ class UIManager {
         
         const wrongQs = this.userStats.wrongQuestions || [];
         
-        // 🌟 错题本 Canvas 自动换行核心算法
         const ctxMeasure = document.createElement('canvas').getContext('2d');
         ctxMeasure.font = '22px "Songti", "SimSun", serif';
         const maxWidth = 680; 
@@ -1621,14 +1626,21 @@ class UIManager {
         }
     }
 
+    // 🌟 修复：恢复 hasEthane 参数，处理乙烷的 3D 解锁及判断
     updateStructureState(hasEthanol, hasDimethylEther, hasEthane, ethaneComponent) {
         if (!this.builtOrder) this.builtOrder = [];
         
         if (hasEthanol && !this.builtOrder.includes('ethanol')) this.builtOrder.push('ethanol');
         if (hasDimethylEther && !this.builtOrder.includes('dimethyl_ether')) this.builtOrder.push('dimethyl_ether');
 
+        // 🌟 修复：恢复乙烷(ethane)被拼装成功时的快照生成逻辑
+        if (hasEthane && !this.snapshots['ethane']) this.snapshots['ethane'] = this.captureIsolatedImage('ethane');
         if (hasEthanol && !this.snapshots['ethanol']) this.snapshots['ethanol'] = this.captureIsolatedImage('ethanol');
         if (hasDimethylEther && !this.snapshots['dimethyl_ether']) this.snapshots['dimethyl_ether'] = this.captureIsolatedImage('dimethyl_ether');
+
+        // 🌟 修复：记录组件引用，保持原有物理逻辑不中断
+        if (hasEthane) this.ethaneComponentRef = ethaneComponent;
+        else this.ethaneComponentRef = null;
 
         const btnToggle = document.getElementById('btn-toggle-main-3d');
         
@@ -1650,7 +1662,8 @@ class UIManager {
             }
         }
 
-        if (!hasEthanol && !hasDimethylEther) {
+        // 🌟 修复：判断空视图状态必须包含 !hasEthane
+        if (!hasEthanol && !hasDimethylEther && !hasEthane) {
             if (typeof this.hideMain3DView === 'function') this.hideMain3DView();
             if (btnToggle) {
                 btnToggle.innerHTML = '👁️'; btnToggle.title = '无可用视图'; btnToggle.onclick = null;
@@ -1685,6 +1698,18 @@ class UIManager {
                         if (typeof this.showAutoBuildBtn === 'function') this.showAutoBuildBtn();
                         this.showMagicNotice("拼装成功！", "可以打开结构视图查看。尝试把氧(O)原子放到中间试试？"); 
                     }
+                }
+            }
+            // 🌟 修复：增加当用户拼接出乙烷时的 3D 视图解锁逻辑
+            else if (hasEthane) {
+                if (btnToggle) { 
+                    btnToggle.innerHTML = '👁️'; btnToggle.onclick = null; 
+                    btnToggle.style.borderColor = 'var(--rpg-mana)'; 
+                    btnToggle.style.color = 'var(--rpg-mana)'; 
+                }
+                
+                if (this.currentLevel === 1) {
+                    this.unlockMain3DView('ethane'); 
                 }
             }
         }
