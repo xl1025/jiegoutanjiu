@@ -3,8 +3,7 @@
  * 🌟 错题本进化版：内置 Canvas 长文本自动换行与高度自适应算法，确保高定证书错题 100% 完整显示。
  * 🌟 聚焦版：彻底删减冗余的乙烷、水对比实验，直入核心取代反应，降低认知负荷。
  * 🌟 视觉留白版：增加错题解析行距，采用“宋体”与“黑体”搭配，增强阅读舒适度。
- * 🌟 居中大屏版：错题弹窗完美居中，字体放大，增加纯文本(TXT)下载复习功能。
- * 🌟 大考全屏滚动版：强制解决测试弹窗跑向左上角的问题，实现完美全屏居中与上下滑动适配大屏！
+ * 🌟 全屏滚动终极修复版：强制接管所有大考相关弹窗的CSS，彻底解决弹窗跑偏到左上角的问题，保证100%全屏居中且完美支持上下滑动！
  */
 class UIManager {
     constructor() {
@@ -101,8 +100,8 @@ class UIManager {
             .showcase-item { transition: transform 0.3s; }
             .showcase-item:hover { transform: translateY(-10px) scale(1.05); }
             .quiz-opt-btn:hover { border-color: #00ffcc !important; transform: translateX(10px); }
-            
-            /* 🌟 核心修复：强制大考全屏弹窗居中显示并支持上下滑动 */
+
+            /* 🌟 核心防御装甲：全面接管大考测验弹窗，绝对全屏，绝对居中，杜绝任何向左上角跑偏的可能性 */
             #ai-trial-panel {
                 position: fixed !important; top: 0 !important; left: 0 !important; 
                 width: 100vw !important; height: 100vh !important;
@@ -110,18 +109,18 @@ class UIManager {
                 display: flex !important; flex-direction: column !important; 
                 align-items: center !important; justify-content: center !important;
                 backdrop-filter: blur(12px) !important; margin: 0 !important; padding: 0 !important;
+                box-sizing: border-box !important;
             }
             #ai-trial-panel.hidden {
                 display: none !important;
             }
+            /* 保证内部模态框自适应并支持上下滚动 */
             #ai-trial-panel > div, .challenge-modal {
-                background: rgba(20,20,30,0.98) !important;
-                border: 3px solid var(--rpg-mana, #00ffcc) !important;
-                border-radius: 15px !important;
-                box-shadow: 0 0 50px rgba(0,255,204,0.3) !important;
-                max-width: 1400px !important; width: 90% !important; 
-                max-height: 85vh !important; overflow-y: auto !important; /* 🌟开启防截断垂直滚动 */
-                padding: 60px 80px !important; position: relative !important;
+                max-width: 1400px !important; width: 90% !important; max-height: 90vh !important; 
+                overflow-y: auto !important; padding: 50px 60px !important; 
+                background: rgba(20,20,30,0.98) !important; border: 3px solid var(--rpg-mana, #00ffcc) !important; 
+                border-radius: 15px !important; box-shadow: 0 0 50px rgba(0,255,204,0.4) !important;
+                margin: auto !important; box-sizing: border-box !important;
             }
             
             .help-content-box {
@@ -486,19 +485,16 @@ class UIManager {
 
         gallery = document.createElement('div');
         gallery.id = 'final-gallery-overlay'; 
-        gallery.className = 'magic-overlay-bg magic-scroll'; 
         
-        gallery.style.backgroundColor = 'rgba(15, 15, 20, 0.9)'; 
-        gallery.style.zIndex = '9999'; 
-        gallery.style.alignItems = 'flex-start';
-        gallery.style.overflowY = 'auto';
-        gallery.style.padding = '50px 0';
-        
+        // 🌟 终极强力全屏防御装甲：通过 cssText 绝对接管样式，防止任何外部CSS干扰导致的塌缩或跑偏
+        // 确保占据 100vw/100vh，且即使内部元素超高也能完美开启上下滚动(overflow-y: auto)
+        gallery.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(15, 15, 20, 0.98) !important; z-index: 9999999 !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; overflow-x: hidden !important; overflow-y: auto !important; padding: 60px 0 !important; box-sizing: border-box !important; backdrop-filter: blur(12px) !important; margin: 0 !important;';
+
         gallery.innerHTML = `
-            <button id="btn-close-final-showcase" class="magic-btn close-btn" style="position: fixed; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 100000;">❌</button>
-            <div style="text-align: center; width: 100%; animation: popDown 0.5s ease-out; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: min-content;">
-                <h2 style="color: var(--rpg-gold); font-size: 3.5em; margin-bottom: 40px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); letter-spacing: 5px;">🏛️ 炼金成果殿堂</h2>
-                <div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-bottom: 20px; width: 90%; max-width: 1200px;">
+            <button id="btn-close-final-showcase" class="magic-btn close-btn" style="position: fixed !important; top: 30px !important; right: 40px !important; width: 60px !important; height: 60px !important; font-size: 2.2em !important; padding: 0 !important; z-index: 1000000 !important; box-shadow: 0 0 20px rgba(255,0,0,0.5) !important;">❌</button>
+            <div style="text-align: center; width: 100%; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: popDown 0.5s ease-out; min-height: min-content;">
+                <h2 style="color: var(--rpg-gold); font-size: 4em; margin-bottom: 50px; margin-top: 20px; text-shadow: 0 0 25px rgba(255, 215, 0, 0.6); letter-spacing: 5px; font-family: 'Heiti', sans-serif;">🏛️ 炼金成果殿堂</h2>
+                <div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-bottom: 30px; width: 100%;">
                     <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #00ffcc; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0,255,204,0.3);">
                         <h3 style="color: #00ffcc; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #00ffcc;">基础分子 (乙醇)</h3>
                         <div id="showcase-ethanol" style="width: 260px; height: 260px;"></div>
@@ -512,8 +508,8 @@ class UIManager {
                         <div id="showcase-cu" style="width: 260px; height: 260px;"></div>
                     </div>
                 </div>
-                <p style="color: #ddd; font-size: 1.5em; margin-top: 30px; margin-bottom: 30px; text-shadow: 1px 1px 3px #000;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
-                <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 40px;">📝 开始最终考核</button>
+                <p style="color: #ddd; font-size: 1.8em; margin-top: 40px; margin-bottom: 40px; text-shadow: 1px 1px 3px #000;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
+                <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 2.2em; padding: 18px 80px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 15px rgba(255,215,0,0.5); margin-bottom: 60px;">📝 开始最终考核</button>
             </div>
         `;
         document.body.appendChild(gallery);
@@ -536,7 +532,7 @@ class UIManager {
             ];
             const btnStartQuiz = document.getElementById('btn-start-final-quiz');
             if (btnStartQuiz && typeof gsap !== 'undefined') {
-                gsap.to(btnStartQuiz, { scale: 1.08, boxShadow: "0 0 30px #ffaa00", duration: 0.8, yoyo: true, repeat: -1 });
+                gsap.to(btnStartQuiz, { scale: 1.08, boxShadow: "0 0 40px #ffaa00", duration: 0.8, yoyo: true, repeat: -1 });
             }
         }, 100);
     }
@@ -558,7 +554,6 @@ class UIManager {
         const q = this.finalQuizState.questions[this.finalQuizState.currentIndex];
         const container = document.getElementById('ai-content');
         
-        // 🌟 核心修复：大幅调优字体与间距，大屏阅读如同翻阅高清绘本般清晰
         let html = `
             <div style="text-align: left; padding: 20px; animation: fadeIn 0.4s;">
                 <h3 style="color: var(--rpg-mana); font-size: 2.2em; margin-bottom: 20px; text-shadow: 0 0 10px rgba(0,255,204,0.5);">最终考核 (${this.finalQuizState.currentIndex + 1}/5)</h3>
@@ -600,7 +595,6 @@ class UIManager {
         const resultColor = isCorrect ? "var(--rpg-mana)" : "var(--rpg-danger)";
         const resultTitle = isCorrect ? "回答正确！" : "回答错误...";
         
-        // 🌟 核心修复：答案与解析同频放大，大屏显示力量感十足
         container.innerHTML = `
             <div style="text-align: left; padding: 20px; animation: popDown 0.4s;">
                 <h3 style="color:${resultColor}; font-size: 2.5em; margin-bottom: 20px; text-shadow: 0 0 10px ${resultColor};">${resultTitle}</h3>
