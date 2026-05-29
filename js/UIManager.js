@@ -4,7 +4,7 @@
  * 🌟 聚焦版：彻底删减冗余的乙烷、水对比实验，直入核心取代反应，降低认知负荷。
  * 🌟 视觉留白版：增加错题解析行距，采用“宋体”与“黑体”搭配，增强阅读舒适度。
  * 🌟 居中大屏版：错题弹窗完美居中，字体放大，增加纯文本(TXT)下载复习功能。
- * 🌟 滚动适配版：修复成果殿堂界面在大屏/小屏下底部按钮被遮挡的问题，增加上下滚动防截断保护。
+ * 🌟 大考全屏滚动版：强制解决测试弹窗跑向左上角的问题，实现完美全屏居中与上下滑动适配大屏！
  */
 class UIManager {
     constructor() {
@@ -101,9 +101,27 @@ class UIManager {
             .showcase-item { transition: transform 0.3s; }
             .showcase-item:hover { transform: translateY(-10px) scale(1.05); }
             .quiz-opt-btn:hover { border-color: #00ffcc !important; transform: translateX(10px); }
-
+            
+            /* 🌟 核心修复：强制大考全屏弹窗居中显示并支持上下滑动 */
+            #ai-trial-panel {
+                position: fixed !important; top: 0 !important; left: 0 !important; 
+                width: 100vw !important; height: 100vh !important;
+                background: rgba(10,10,15,0.95) !important; z-index: 9999999 !important;
+                display: flex !important; flex-direction: column !important; 
+                align-items: center !important; justify-content: center !important;
+                backdrop-filter: blur(12px) !important; margin: 0 !important; padding: 0 !important;
+            }
+            #ai-trial-panel.hidden {
+                display: none !important;
+            }
             #ai-trial-panel > div, .challenge-modal {
-                max-width: 1400px !important; width: 96% !important; padding: 40px 50px !important;
+                background: rgba(20,20,30,0.98) !important;
+                border: 3px solid var(--rpg-mana, #00ffcc) !important;
+                border-radius: 15px !important;
+                box-shadow: 0 0 50px rgba(0,255,204,0.3) !important;
+                max-width: 1400px !important; width: 90% !important; 
+                max-height: 85vh !important; overflow-y: auto !important; /* 🌟开启防截断垂直滚动 */
+                padding: 60px 80px !important; position: relative !important;
             }
             
             .help-content-box {
@@ -470,7 +488,6 @@ class UIManager {
         gallery.id = 'final-gallery-overlay'; 
         gallery.className = 'magic-overlay-bg magic-scroll'; 
         
-        // 🌟 修复关键点：解除绝对居中的死锁，改为顶部对齐并开启上下滚动 (overflow-y: auto)
         gallery.style.backgroundColor = 'rgba(15, 15, 20, 0.9)'; 
         gallery.style.zIndex = '9999'; 
         gallery.style.alignItems = 'flex-start';
@@ -541,15 +558,16 @@ class UIManager {
         const q = this.finalQuizState.questions[this.finalQuizState.currentIndex];
         const container = document.getElementById('ai-content');
         
+        // 🌟 核心修复：大幅调优字体与间距，大屏阅读如同翻阅高清绘本般清晰
         let html = `
             <div style="text-align: left; padding: 20px; animation: fadeIn 0.4s;">
-                <h3 style="color: var(--rpg-mana); font-size: 1.2em; margin-bottom: 15px;">最终考核 (${this.finalQuizState.currentIndex + 1}/5)</h3>
-                <div style="font-size: 0.95em; color: #fff; margin-bottom: 20px; line-height: 1.5; background: rgba(0,0,0,0.4); padding: 15px 20px; border-radius: 10px; border-left: 4px solid var(--rpg-mana);">${q.question}</div>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
+                <h3 style="color: var(--rpg-mana); font-size: 2.2em; margin-bottom: 20px; text-shadow: 0 0 10px rgba(0,255,204,0.5);">最终考核 (${this.finalQuizState.currentIndex + 1}/5)</h3>
+                <div style="font-size: 1.8em; color: #fff; margin-bottom: 30px; line-height: 1.6; background: rgba(0,0,0,0.5); padding: 30px 40px; border-radius: 12px; border-left: 6px solid var(--rpg-mana);">${q.question}</div>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
         `;
         
         q.options.forEach((opt, idx) => {
-            html += `<button class="magic-btn quiz-opt-btn" data-idx="${idx}" style="text-align: left; padding: 12px 20px; font-size: 0.8em; border-color: #666; color: #ddd; background: rgba(0,0,0,0.6); transition: all 0.2s;">${String.fromCharCode(65+idx)}. ${opt}</button>`;
+            html += `<button class="magic-btn quiz-opt-btn" data-idx="${idx}" style="text-align: left; padding: 18px 30px; font-size: 1.5em; border-color: #666; color: #ddd; background: rgba(0,0,0,0.6); transition: all 0.2s;">${String.fromCharCode(65+idx)}. ${opt}</button>`;
         });
 
         html += `</div></div>`;
@@ -582,15 +600,16 @@ class UIManager {
         const resultColor = isCorrect ? "var(--rpg-mana)" : "var(--rpg-danger)";
         const resultTitle = isCorrect ? "回答正确！" : "回答错误...";
         
+        // 🌟 核心修复：答案与解析同频放大，大屏显示力量感十足
         container.innerHTML = `
             <div style="text-align: left; padding: 20px; animation: popDown 0.4s;">
-                <h3 style="color:${resultColor}; font-size: 1.3em; margin-bottom: 15px;">${resultTitle}</h3>
-                <div style="font-size: 0.95em; line-height: 1.6; padding: 20px; background: rgba(0,0,0,0.6); border-radius: 15px; border: 3px solid ${resultColor}; color: #fff;">
+                <h3 style="color:${resultColor}; font-size: 2.5em; margin-bottom: 20px; text-shadow: 0 0 10px ${resultColor};">${resultTitle}</h3>
+                <div style="font-size: 1.6em; line-height: 1.8; padding: 30px 40px; background: rgba(0,0,0,0.6); border-radius: 15px; border: 3px solid ${resultColor}; color: #fff;">
                     ${isCorrect ? `<span style="color:#00ffcc; font-weight:bold;">太棒了！</span><br>` : `<span style="color:#ff4444; text-decoration:line-through;">你选择了：${q.options[selectedIdx]}</span><br><span style="color:#00ffcc; font-weight:bold;">正确答案：${q.options[q.correctIdx]}</span><br><br>`}
                     ${q.explanation}
                 </div>
-                <div style="margin-top: 30px; text-align: center;">
-                    <button id="btn-next-quiz" class="magic-btn" style="font-size: 1.1em; padding: 12px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold); box-shadow: 0 0 20px rgba(255,215,0,0.3);">${this.finalQuizState.currentIndex < 4 ? '下一题' : '查看最终成绩'}</button>
+                <div style="margin-top: 40px; text-align: center;">
+                    <button id="btn-next-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold); color: var(--rpg-gold); box-shadow: 0 0 20px rgba(255,215,0,0.3);">${this.finalQuizState.currentIndex < 4 ? '下一题' : '查看最终成绩'}</button>
                 </div>
             </div>
         `;
