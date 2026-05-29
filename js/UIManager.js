@@ -3,7 +3,7 @@
  * 🌟 错题本进化版：内置 Canvas 长文本自动换行与高度自适应算法，确保高定证书错题 100% 完整显示。
  * 🌟 聚焦版：彻底删减冗余的乙烷、水对比实验，直入核心取代反应，降低认知负荷。
  * 🌟 视觉留白版：增加错题解析行距，采用“宋体”与“黑体”搭配，增强阅读舒适度。
- * 🌟 全屏滚动终极修复版：强制接管所有大考相关弹窗的CSS，彻底解决弹窗跑偏到左上角的问题，保证100%全屏居中且完美支持上下滑动！
+ * 🌟 全屏滚动终极修复版：强制接管所有大考相关弹窗的CSS，彻底解决弹窗跑偏到左上角的问题，保证100%全屏并完美支持上下滑动！
  */
 class UIManager {
     constructor() {
@@ -92,37 +92,52 @@ class UIManager {
                 padding: 0 10px; margin: 0 5px; transition: all 0.2s;
             }
             .eq-slot[data-filled] { border: 2px solid #00ffcc; background: rgba(0,255,204,0.1); }
-            .magic-overlay-bg {
-                position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10,10,15,0.95); 
-                z-index: 9999999; display: flex; align-items: center; justify-content: center; 
-                backdrop-filter: blur(8px); pointer-events: auto; transition: background 0.5s, backdrop-filter 0.5s;
-            }
             .showcase-item { transition: transform 0.3s; }
             .showcase-item:hover { transform: translateY(-10px) scale(1.05); }
             .quiz-opt-btn:hover { border-color: #00ffcc !important; transform: translateX(10px); }
 
-            /* 🌟 核心防御装甲：全面接管大考测验弹窗，绝对全屏，绝对居中，杜绝任何向左上角跑偏的可能性 */
-            #ai-trial-panel {
-                position: fixed !important; top: 0 !important; left: 0 !important; 
+            /* 🌟 全局弹窗终极装甲：接管成果殿堂、答题大考、综合测评所有全屏面板，强制100%全屏居中并开启上下滚动保护 */
+            #ai-trial-panel, #evaluation-panel, #final-showcase-container {
+                position: fixed !important;
+                top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
                 width: 100vw !important; height: 100vh !important;
-                background: rgba(10,10,15,0.95) !important; z-index: 9999999 !important;
-                display: flex !important; flex-direction: column !important; 
-                align-items: center !important; justify-content: center !important;
-                backdrop-filter: blur(12px) !important; margin: 0 !important; padding: 0 !important;
-                box-sizing: border-box !important;
+                background: rgba(10,10,15,0.95) !important;
+                z-index: 9999999 !important;
+                display: flex !important; flex-direction: column !important;
+                align-items: center !important; justify-content: flex-start !important;
+                overflow-y: auto !important; overflow-x: hidden !important;
+                padding: 60px 0 !important; box-sizing: border-box !important;
+                backdrop-filter: blur(12px) !important; margin: 0 !important;
             }
-            #ai-trial-panel.hidden {
+            #ai-trial-panel.hidden, #evaluation-panel.hidden {
                 display: none !important;
             }
-            /* 保证内部模态框自适应并支持上下滚动 */
+            
+            /* 内部内容区域自适应防截断 */
             #ai-trial-panel > div, .challenge-modal {
-                max-width: 1400px !important; width: 90% !important; max-height: 90vh !important; 
-                overflow-y: auto !important; padding: 50px 60px !important; 
+                max-width: 1400px !important; width: 90% !important; max-height: none !important; 
+                padding: 50px 60px !important; margin: auto !important; 
                 background: rgba(20,20,30,0.98) !important; border: 3px solid var(--rpg-mana, #00ffcc) !important; 
                 border-radius: 15px !important; box-shadow: 0 0 50px rgba(0,255,204,0.4) !important;
-                margin: auto !important; box-sizing: border-box !important;
+                box-sizing: border-box !important; flex-shrink: 0 !important;
+            }
+
+            /* 测评结果内部保护，防止内容过高被直接截断 */
+            #evaluation-panel > * {
+                flex-shrink: 0 !important;
             }
             
+            #expert-rank-display {
+                position: fixed !important; top: 40px !important; left: 50px !important; z-index: 10000000 !important;
+            }
+            
+            @media (max-width: 1300px) {
+                #expert-rank-display {
+                    position: relative !important; top: auto !important; left: auto !important;
+                    transform: rotate(0) scale(0.9) !important; margin-bottom: 30px !important;
+                }
+            }
+
             .help-content-box {
                 background: rgba(20,20,30,0.98); border: 3px solid var(--rpg-mana, #00ffcc); 
                 border-radius: 15px; padding: 40px 50px; width: 85%; max-width: 1000px; 
@@ -172,7 +187,7 @@ class UIManager {
 
         overlay = document.createElement('div');
         overlay.id = 'help-instructions-overlay';
-        overlay.className = 'magic-overlay-bg';
+        overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10,10,15,0.95); z-index: 9999999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px);';
 
         const mod1HTML = `
             <div class="help-module-title">🧩 模块一：结构探秘</div>
@@ -356,7 +371,7 @@ class UIManager {
     }
 
     switchModule(moduleId) {
-        const existingGallery = document.getElementById('final-gallery-overlay');
+        const existingGallery = document.getElementById('final-showcase-container');
         if (existingGallery) {
             existingGallery.remove();
             if (this.showcaseRenderers) { this.showcaseRenderers.forEach(r => r.dispose()); this.showcaseRenderers = null; }
@@ -480,19 +495,16 @@ class UIManager {
     }
 
     showFinalShowcase() {
-        let gallery = document.getElementById('final-gallery-overlay');
+        let gallery = document.getElementById('final-showcase-container');
         if (gallery) gallery.remove();
 
         gallery = document.createElement('div');
-        gallery.id = 'final-gallery-overlay'; 
+        gallery.id = 'final-showcase-container'; 
         
-        // 🌟 终极强力全屏防御装甲：通过 cssText 绝对接管样式，防止任何外部CSS干扰导致的塌缩或跑偏
-        // 确保占据 100vw/100vh，且即使内部元素超高也能完美开启上下滚动(overflow-y: auto)
-        gallery.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(15, 15, 20, 0.98) !important; z-index: 9999999 !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; overflow-x: hidden !important; overflow-y: auto !important; padding: 60px 0 !important; box-sizing: border-box !important; backdrop-filter: blur(12px) !important; margin: 0 !important;';
-
+        // 此处的HTML结构会自动受到全局 CSS 防御装甲（#final-showcase-container）的保护，实现完美居中和上下滚动
         gallery.innerHTML = `
-            <button id="btn-close-final-showcase" class="magic-btn close-btn" style="position: fixed !important; top: 30px !important; right: 40px !important; width: 60px !important; height: 60px !important; font-size: 2.2em !important; padding: 0 !important; z-index: 1000000 !important; box-shadow: 0 0 20px rgba(255,0,0,0.5) !important;">❌</button>
-            <div style="text-align: center; width: 100%; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: popDown 0.5s ease-out; min-height: min-content;">
+            <button id="btn-close-final-showcase" class="magic-btn close-btn" style="position: fixed; top: 30px; right: 40px; width: 60px; height: 60px; font-size: 2.2em; padding: 0; z-index: 1000000; box-shadow: 0 0 20px rgba(255,0,0,0.5);">❌</button>
+            <div style="text-align: center; width: 100%; max-width: 1400px; margin: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: popDown 0.5s ease-out; min-height: min-content; flex-shrink: 0;">
                 <h2 style="color: var(--rpg-gold); font-size: 4em; margin-bottom: 50px; margin-top: 20px; text-shadow: 0 0 25px rgba(255, 215, 0, 0.6); letter-spacing: 5px; font-family: 'Heiti', sans-serif;">🏛️ 炼金成果殿堂</h2>
                 <div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-bottom: 30px; width: 100%;">
                     <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #00ffcc; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0,255,204,0.3);">
@@ -1107,7 +1119,7 @@ class UIManager {
             if (id === 'btn-submit-structures') this.checkLinearStructures();
             
             if (id === 'btn-trigger-quiz' || id === 'btn-finish' || id === 'btn-start-final-quiz') {
-                const gallery = document.getElementById('final-gallery-overlay');
+                const gallery = document.getElementById('final-showcase-container');
                 if (gallery) { gallery.style.opacity = '0'; setTimeout(() => gallery.style.display = 'none', 500); }
                 
                 if (id === 'btn-start-final-quiz' || id === 'btn-finish') {
@@ -1131,7 +1143,7 @@ class UIManager {
 
             if (id === 'btn-return-home') {
                 document.getElementById('evaluation-panel')?.classList.add('hidden');
-                const gallery = document.getElementById('final-gallery-overlay'); if (gallery) gallery.remove();
+                const gallery = document.getElementById('final-showcase-container'); if (gallery) gallery.remove();
                 const aiPanel = document.getElementById('ai-trial-panel'); if (aiPanel) aiPanel.classList.add('hidden');
 
                 this.switchModule(1);
