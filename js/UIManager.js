@@ -568,7 +568,9 @@ class UIManager {
                     </div>
                 </div>
                 <p style="color: #ddd; font-size: 1.5em; margin-top: 30px; margin-bottom: 30px; text-shadow: 1px 1px 3px #000;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
-                <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 10px rgba(255,215,0,0.5);">📝 开始最终考核</button>
+                <div style="width: 100%; display: flex; justify-content: flex-start; padding-left: 8%;">
+                    <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 10px rgba(255,215,0,0.5);">📝 开始最终考核</button>
+                </div>
             </div>
         `;
         document.body.appendChild(gallery);
@@ -1134,7 +1136,7 @@ class UIManager {
             box.addEventListener('pointermove', (e) => {
                 if (!isDragging) return;
                 state.x = e.clientX - startX;
-                state.y = e.clientY - startY;
+                startY = e.clientY - startY;
                 updateTransform();
             });
 
