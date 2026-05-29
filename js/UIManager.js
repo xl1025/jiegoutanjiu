@@ -1,9 +1,7 @@
 /** 互动 UI 管理器 (UIManager.js) 
  * 🌟 专家终极版：深度打磨综合评测模块，升级为 500分 五维立体评价体系！
- * 🌟 错题本进化版：内置 Canvas 长文本自动换行与高度自适应算法，确保高定证书错题 100% 完整显示。
- * 🌟 聚焦版：彻底删减冗余的乙烷、水对比实验，直入核心取代反应，降低认知负荷。
- * 🌟 视觉留白版：增加错题解析行距，采用“宋体”与“黑体”搭配，增强阅读舒适度。
- * 🌟 大屏智适应版：重构“炼金成果殿堂”瀑布流防截断排版，并新增带有呼吸动画的智能下滑指引按钮。
+ * 🌟 修复版：针对乙烷(ethane)进行专属防呆机制处理，确保底层渲染无阻碍。
+ * 🌟 大屏自适应排版优化：彻底修复成果殿堂弹窗在大屏或特定长宽比下，底部【开始测试】按钮被截断不可见的问题。加入动态弹性滚动容器。
  */
 class UIManager {
     constructor() {
@@ -467,41 +465,41 @@ class UIManager {
 
         gallery = document.createElement('div');
         gallery.id = 'final-gallery-overlay'; 
-        gallery.className = 'magic-overlay-bg magic-scroll'; 
+        gallery.className = 'magic-overlay-bg magic-scroll';
         
-        // 🌟 大屏关键修复：移除 display:flex 的绝对居中限制，允许 Y 轴正常溢出滚动
-        gallery.style.display = 'block';
-        gallery.style.overflowY = 'auto';
-        gallery.style.backgroundColor = 'rgba(15, 15, 20, 0.95)'; 
+        // 🌟 关键修复：覆盖原有的 flex 强行居中逻辑，改为 block + auto 滚动。
+        // 这彻底解决了在大屏横屏或特殊比例下，容器高度超出视口导致底部【开始考核】按钮被截断不可见的问题。
+        gallery.style.display = 'block'; 
+        gallery.style.overflowY = 'auto'; 
+        gallery.style.backgroundColor = 'rgba(15, 15, 20, 0.9)'; 
         gallery.style.zIndex = '9999'; 
         
         gallery.innerHTML = `
             <button id="btn-close-final-showcase" class="magic-btn close-btn" style="position: fixed; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 100000;">❌</button>
             
-            <div style="text-align: center; width: 100%; min-height: 100%; padding: 60px 0 120px 0; animation: popDown 0.5s ease-out; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;">
-                <h2 style="color: var(--rpg-gold); font-size: 4em; margin-bottom: 40px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); letter-spacing: 5px;">🏛️ 炼金成果殿堂</h2>
-                
-                <div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-bottom: 40px; max-width: 1200px;">
-                    <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #00ffcc; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0,255,204,0.3);">
-                        <h3 style="color: #00ffcc; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #00ffcc;">基础分子 (乙醇)</h3>
-                        <div id="showcase-ethanol" style="width: 280px; height: 280px;"></div>
+            <div style="display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 60px 20px; box-sizing: border-box; animation: popDown 0.5s ease-out;">
+                <div style="margin: auto 0; text-align: center; width: 100%; max-width: 1400px;">
+                    <h2 style="color: var(--rpg-gold); font-size: 3.5em; margin-bottom: 40px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); letter-spacing: 5px;">🏛️ 炼金成果殿堂</h2>
+                    
+                    <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-bottom: 40px;">
+                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #00ffcc; border-radius: 15px; padding: 20px; box-shadow: 0 0 30px rgba(0,255,204,0.3);">
+                            <h3 style="color: #00ffcc; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #00ffcc;">基础分子 (乙醇)</h3>
+                            <div id="showcase-ethanol" style="width: 250px; height: 250px; margin: 0 auto;"></div>
+                        </div>
+                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #ffaa00; border-radius: 15px; padding: 20px; box-shadow: 0 0 30px rgba(255,170,0,0.3);">
+                            <h3 style="color: #ffaa00; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #ffaa00;">置换产物 (乙醇钠)</h3>
+                            <div id="showcase-na" style="width: 250px; height: 250px; margin: 0 auto;"></div>
+                        </div>
+                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #ff4444; border-radius: 15px; padding: 20px; box-shadow: 0 0 30px rgba(255,68,68,0.3);">
+                            <h3 style="color: #ff4444; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #ff4444;">氧化产物 (乙醛)</h3>
+                            <div id="showcase-cu" style="width: 250px; height: 250px; margin: 0 auto;"></div>
+                        </div>
                     </div>
-                    <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #ffaa00; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(255,170,0,0.3);">
-                        <h3 style="color: #ffaa00; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #ffaa00;">置换产物 (乙醇钠)</h3>
-                        <div id="showcase-na" style="width: 280px; height: 280px;"></div>
-                    </div>
-                    <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #ff4444; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(255,68,68,0.3);">
-                        <h3 style="color: #ff4444; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #ff4444;">氧化产物 (乙醛)</h3>
-                        <div id="showcase-cu" style="width: 280px; height: 280px;"></div>
-                    </div>
+                    
+                    <p style="color: #ddd; font-size: 1.8em; margin-bottom: 40px; line-height: 1.6; text-shadow: 1px 1px 3px #000;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
+                    <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 2.2em; padding: 15px 70px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 10px rgba(255,215,0,0.5);">📝 开始最终考核</button>
                 </div>
-                
-                <p style="color: #ddd; font-size: 1.8em; margin-top: 20px; margin-bottom: 40px; text-shadow: 1px 1px 3px #000; padding: 0 20px;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
-                
-                <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 2.2em; padding: 20px 80px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 15px rgba(255,215,0,0.5); box-shadow: 0 0 25px rgba(255,215,0,0.3);">📝 开始最终考核</button>
             </div>
-
-            <button id="btn-scroll-down-hint" class="magic-btn" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); font-size: 1.5em; padding: 12px 35px; border-color: #00ffcc; color: #00ffcc; background: rgba(0,0,0,0.85); z-index: 100001; box-shadow: 0 0 20px rgba(0,255,204,0.6); border-radius: 30px; transition: opacity 0.3s;">⬇️ 下滑查看全貌并开始测试</button>
         `;
         document.body.appendChild(gallery);
 
@@ -511,39 +509,6 @@ class UIManager {
                 gallery.remove();
                 if (this.showcaseRenderers) { this.showcaseRenderers.forEach(r => r.dispose()); this.showcaseRenderers = null; }
             });
-        }
-
-        // 🌟 智能下滑按钮交互控制逻辑
-        const scrollBtn = document.getElementById('btn-scroll-down-hint');
-        if (scrollBtn) {
-            // 加入 GSAP 呼吸上下浮动动画
-            if (typeof gsap !== 'undefined') {
-                gsap.to(scrollBtn, { y: 15, duration: 0.8, yoyo: true, repeat: -1, ease: "power1.inOut" });
-            }
-            
-            // 点击直接丝滑滚动到底部
-            scrollBtn.addEventListener('click', () => {
-                gallery.scrollTo({ top: gallery.scrollHeight, behavior: 'smooth' });
-            });
-
-            // 监听真实滚动状态，触底时自动隐藏按钮
-            gallery.addEventListener('scroll', () => {
-                // 如果滚动条距离底部小于 50px，触发平滑隐藏
-                if (gallery.scrollTop + gallery.clientHeight >= gallery.scrollHeight - 50) {
-                    scrollBtn.style.opacity = '0';
-                    scrollBtn.style.pointerEvents = 'none';
-                } else {
-                    scrollBtn.style.opacity = '1';
-                    scrollBtn.style.pointerEvents = 'auto';
-                }
-            });
-
-            // 初始挂载后检测：如果大屏幕高度足够一口气显示完毕，直接移除该按钮
-            setTimeout(() => {
-                if (gallery.scrollHeight <= gallery.clientHeight + 20) {
-                    scrollBtn.style.display = 'none';
-                }
-            }, 600);
         }
 
         if (this.showcaseRenderers) this.showcaseRenderers.forEach(r => r.dispose());
