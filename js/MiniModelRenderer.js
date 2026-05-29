@@ -1,8 +1,9 @@
 /**
  * 高阶微观全息投影仪 (MiniModelRenderer.js)
  * 🌟 内存优化完整版：加入深度 WebGL 显存释放机制，包含所有推演动画完整逻辑
- * 🌟 修复版：彻底恢复基础乙烷(ethane)的3D结构建模与底层映射，解决第一关乙烷全息模块不显示的问题
+ * 🌟 视觉运镜优化：新增推演动画乙醇放大特写、铜正上方飘动、水分子右下角居中集结
  * 🌟 完美构图版：取消氧化铜过度放大，缩短铜漂浮距离，确保最终镜头完美容纳铜、水和乙醛三者
+ * 🌟 序列与键长修改版：调整钠与水反应的时序(钠出现->圈定官能团->脱氢断开->连接钠)，同时大幅缩短离子键生成后的连接距离
  */
 class MiniModelRenderer {
     constructor(containerId, moleculeType) {
@@ -52,13 +53,12 @@ class MiniModelRenderer {
 
         this.initCaches();
 
-        // 🌟 修复：增强类型匹配鲁棒性，确保乙烷能够被准确渲染
-        const typeStr = (moleculeType || '').toLowerCase();
-        if (typeStr === 'ethanol') this.createEthanolModel();
-        else if (typeStr === 'dimethyl_ether') this.createDimethylEtherModel();
-        else if (typeStr === 'sodium_ethoxide') this.createSodiumEthoxideModel(); 
-        else if (typeStr === 'acetaldehyde') this.createAcetaldehydeModel(); 
-        else if (typeStr === 'ethane') this.createEthaneModel(); 
+        if (moleculeType === 'ethanol') this.createEthanolModel();
+        else if (moleculeType === 'dimethyl_ether') this.createDimethylEtherModel();
+        else if (moleculeType === 'sodium_ethoxide') this.createSodiumEthoxideModel(); 
+        else if (moleculeType === 'acetaldehyde') this.createAcetaldehydeModel(); 
+        else if (moleculeType === 'ethane') this.createEthaneModel(); 
+        else if (moleculeType === 'water') this.createWaterModel(); 
 
         this.initNativeInteraction(); 
 
@@ -184,7 +184,9 @@ class MiniModelRenderer {
             this.pivot.traverse(obj => gsap.killTweensOf(obj));
         }
 
-        if (this.geometryCache) Object.values(this.geometryCache).forEach(geo => geo.dispose());
+        if (this.geometryCache) {
+            Object.values(this.geometryCache).forEach(geo => geo.dispose());
+        }
         if (this.materialCache) {
             Object.values(this.materialCache).forEach(mat => {
                 if (mat.map) mat.map.dispose(); 
@@ -209,7 +211,9 @@ class MiniModelRenderer {
             if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
         }
         
-        if (this.tooltip && this.tooltip.parentNode) this.tooltip.parentNode.removeChild(this.tooltip);
+        if (this.tooltip && this.tooltip.parentNode) {
+            this.tooltip.parentNode.removeChild(this.tooltip);
+        }
     }
 
     resetIdleTimer() { this.interactionState.lastInteractionTime = Date.now(); }
@@ -368,19 +372,36 @@ class MiniModelRenderer {
         return { trackA, trackB };
     }
 
-    // 🌟 修复：恢复最纯净的乙烷坐标阵列，确保模型 100% 被绘制
     createEthaneModel() {
-        const c1 = this.addAtom('C', new THREE.Vector3(-1.2, 0, 0));
-        const c2 = this.addAtom('C', new THREE.Vector3(1.2, 0, 0));
-        this.addBond(c1, c2);
+        const c1 = this.addAtom('C', new THREE.Vector3(-0.75, 0, 0)); 
+        const c2 = this.addAtom('C', new THREE.Vector3(0.75, 0, 0)); 
+        this.addBond(c1, c2); 
         
-        this.addBond(c1, this.addAtom('H', new THREE.Vector3(-1.9, 1.1, 0)));
-        this.addBond(c1, this.addAtom('H', new THREE.Vector3(-1.9, -0.5, 1.0)));
-        this.addBond(c1, this.addAtom('H', new THREE.Vector3(-1.9, -0.5, -1.0)));
-        
-        this.addBond(c2, this.addAtom('H', new THREE.Vector3(1.9, 1.1, 0)));
-        this.addBond(c2, this.addAtom('H', new THREE.Vector3(1.9, -0.5, 1.0)));
-        this.addBond(c2, this.addAtom('H', new THREE.Vector3(1.9, -0.5, -1.0)));
+        const h1 = this.addAtom('H', new THREE.Vector3(-1.1, 0.8, 0)); 
+        const h2 = this.addAtom('H', new THREE.Vector3(-1.1, -0.4, 0.7)); 
+        const h3 = this.addAtom('H', new THREE.Vector3(-1.1, -0.4, -0.7));
+        this.addBond(c1, h1); this.addBond(c1, h2); this.addBond(c1, h3);
+
+        const h4 = this.addAtom('H', new THREE.Vector3(1.1, 0.8, 0)); 
+        const h5 = this.addAtom('H', new THREE.Vector3(1.1, -0.4, 0.7)); 
+        const h6 = this.addAtom('H', new THREE.Vector3(1.1, -0.4, -0.7));
+        this.addBond(c2, h4); this.addBond(c2, h5); this.addBond(c2, h6);
+
+        this.transientMeshes.atomC1 = c1;
+        this.transientMeshes.atomC2 = c2;
+    }
+
+    createWaterModel() {
+        const o1 = this.addAtom('O', new THREE.Vector3(0, 0, 0));
+        const h1 = this.addAtom('H', new THREE.Vector3(-0.8, -0.6, 0));
+        const h2 = this.addAtom('H', new THREE.Vector3(0.8, -0.6, 0));
+
+        const bondOH1 = this.addBond(o1, h1);
+        this.addBond(o1, h2);
+
+        this.transientMeshes.atomO = o1;
+        this.transientMeshes.atomH = h1;
+        this.transientMeshes.bondOH = bondOH1;
     }
 
     createEthanolModel() {
@@ -473,6 +494,153 @@ class MiniModelRenderer {
         }
     }
 
+    async animateEthaneAndSodium() {
+        if (this.isDisposed || !this.transientMeshes.atomC1) return;
+        this.showMagicTitle("对比推演：乙烷与钠");
+        this.interactionState.isAnimating = true;
+
+        const tl = gsap.timeline();
+        
+        const startPosNa = new THREE.Vector3(2.8, 2, 0); 
+        const targetPosNa = new THREE.Vector3(1.5, 0.5, 0);
+        const bouncePosNa = new THREE.Vector3(5, -2, 2);
+        
+        const atomNa = this.addAtom('Na', startPosNa);
+        atomNa.material.transparent = true;
+        atomNa.material.opacity = 0;
+        this.transientMeshes.atomNa = atomNa;
+
+        tl.addLabel("focus")
+          .to(this.interactionState, { targetCameraZ: 9.5, targetRotationX: 0, targetRotationY: 0, duration: 1.5, ease: "power2.inOut" }, "focus") 
+          .to(this.pivot.rotation, { x: 0, y: 0, z: 0, duration: 1.5, ease: "power2.inOut" }, "focus") 
+          .to(this.pivot.position, { x: -1.0, y: 0, duration: 1.5, ease: "power2.inOut" }, "focus"); 
+
+        tl.addLabel("approach", "-=0.2")
+          .to(atomNa.material, { opacity: 1, duration: 0.5 }, "approach")
+          .to(atomNa.position, { x: targetPosNa.x, y: targetPosNa.y, z: targetPosNa.z, duration: 1.2, ease: "power2.in" }, "approach");
+
+        tl.addLabel("bounce", "+=0.1")
+          .to(atomNa.position, { x: bouncePosNa.x, y: bouncePosNa.y, z: bouncePosNa.z, duration: 1.2, ease: "power2.out" }, "bounce")
+          .to(atomNa.material, { opacity: 0, duration: 0.8, delay: 0.4 }, "bounce")
+          .add(() => { this.showMagicTitle("推演结果：无反应"); }, "bounce");
+
+        tl.addLabel("restore", "+=0.5")
+          .to(this.interactionState, { targetCameraZ: 11, duration: 1.5, ease: "power2.inOut" }, "restore")
+          .to(this.pivot.position, { x: 0, y: 0, duration: 1.5, ease: "power2.inOut" }, "restore")
+          .add(() => { 
+              if(atomNa.parent) atomNa.parent.remove(atomNa);
+              this.interactionState.isAnimating = false; 
+              this.resetIdleTimer(); 
+          });
+          
+        return tl;
+    }
+
+    // 🌟 时序重排版：钠优先入场 -> 圈出官能团 -> 脱氢 -> 生成更短距离的离子键
+    async animateWaterAndSodium() {
+        if (this.isDisposed || !this.transientMeshes.atomH || !this.transientMeshes.bondOH) return;
+        this.showMagicTitle("对比推演：水与钠");
+        this.interactionState.isAnimating = true;
+
+        const tl = gsap.timeline();
+        const startPosNa = new THREE.Vector3(3.5, 3, -1); 
+        const targetPosNa = new THREE.Vector3(2.2, 1.0, 0); // initial approach
+        
+        const atomNa = this.addAtom('Na', startPosNa);
+        atomNa.material.transparent = true;
+        atomNa.material.opacity = 0;
+        this.transientMeshes.atomNa = atomNa;
+
+        const atomO = this.transientMeshes.atomO;
+
+        // 1. 镜头聚焦
+        tl.addLabel("focus")
+            .to(this.interactionState, { targetCameraZ: 9.5, targetRotationX: 0, targetRotationY: 0, duration: 1.5, ease: "power2.inOut" }, "focus") 
+            .to(this.pivot.rotation, { x: 0, y: 0, z: 0, duration: 1.5, ease: "power2.inOut" }, "focus") 
+            .to(this.pivot.position, { x: -1.0, y: 0, duration: 1.5, ease: "power2.inOut" }, "focus"); 
+
+        // 2. 钠元素优先出现进入视野
+        tl.addLabel("naAdsorb", "-=0.2")
+            .to(atomNa.material, { opacity: 1, duration: 0.4 }, "naAdsorb")
+            .to(atomNa.position, { x: targetPosNa.x, y: targetPosNa.y, z: targetPosNa.z, duration: 1.2, ease: "power2.out" }, "naAdsorb"); 
+
+        const haloGeo = new THREE.SphereGeometry(1.5, 32, 32);
+        const haloMat = new THREE.MeshBasicMaterial({ color: 0xff00ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, wireframe: true });
+        const halo = new THREE.Mesh(haloGeo, haloMat);
+        atomO.add(halo);
+
+        const waterOHBond = this.transientMeshes.bondOH;
+        const atomH = waterOHBond.a === atomO ? waterOHBond.b : waterOHBond.a;
+
+        // 3. 圈出官能团 (出现光圈闪烁脱氢预警)
+        tl.addLabel("tension", "+=0.2")
+            .to(halo.material, { opacity: 0.8, duration: 0.4, yoyo: true, repeat: 3 }, "tension") 
+            .to(halo.scale, { x: 1.3, y: 1.3, z: 1.3, duration: 0.4, yoyo: true, repeat: 3 }, "tension")
+            .to(waterOHBond.mesh.material.emissive, { r: 1, duration: 0.3, yoyo: true, repeat: 4 }, "tension")
+            .to(waterOHBond.mesh.scale, { x: 0.4, z: 0.4, duration: 1.2, ease: "rough({ strength: 3, points: 30 })" }, "tension") 
+            .to(atomH.scale, { x: 1.3, y: 1.3, z: 1.3, duration: 1.2, ease: "rough({ strength: 3, points: 30 })" }, "tension");
+
+        // 4. 脱氢断开
+        tl.addLabel("break", "+=0.1")
+            .add(() => {
+                const halves = this.breakBondIntoHalves(waterOHBond.mesh);
+                this.trackO = halves.trackA.atom === atomO ? halves.trackA : halves.trackB;
+
+                const geoNa = new THREE.CylinderGeometry(0.12, 0.12, 1, 8);
+                geoNa.translate(0, 0.5, 0); 
+                const matNa = new THREE.MeshStandardMaterial({ color: 0xffff00, transparent: true, opacity: 0.9, emissive: 0x888800 });
+                const halfNa = new THREE.Mesh(geoNa, matNa);
+                this.pivot.add(halfNa);
+
+                this.trackNa = { mesh: halfNa, atom: this.atomNa, dir: new THREE.Vector3(0,1,0) };
+                this.brokenHalves.push(this.trackNa);
+                halfNa.scale.set(1, 0, 1);
+                
+                gsap.to(halfNa.scale, { y: this.trackO.mesh ? this.trackO.mesh.scale.y : 1, duration: 1 });
+            }, "break")
+            .to(atomH.position, { x: "-=3", y: "-=3", z: "+=8", duration: 1.2, ease: "power2.in" }, "break") 
+            .to(atomH.material, { opacity: 0, transparent: true, duration: 0.8, ease: "power1.in" }, "break")
+            .to(halo.material, { opacity: 0, duration: 0.5 }, "break");
+
+        // 5. 氧和钠连接 (显著缩短离子键连接距离)
+        tl.addLabel("formIonic", "+=0.2")
+            .to(atomNa.position, {
+                x: atomO.position.x + 1.4, y: atomO.position.y + 0.8, duration: 1.5, 
+                onUpdate: () => {
+                    if(this.trackNa && this.trackO) {
+                        const _t1 = new THREE.Vector3().subVectors(atomO.position, atomNa.position).normalize();
+                        if (_t1.lengthSq() > 0.001) this.trackNa.dir.lerp(_t1, 0.2).normalize();
+                        
+                        const _t2 = new THREE.Vector3().subVectors(atomNa.position, atomO.position).normalize();
+                        if (_t2.lengthSq() > 0.001) this.trackO.dir.lerp(_t2, 0.2).normalize();
+                    }
+                }
+            }, "formIonic")
+            .add(() => {
+                if (!this.isDisposed) {
+                   if(this.trackO && this.trackO.mesh) this.trackO.mesh.visible = false;
+                   if(this.trackNa && this.trackNa.mesh) this.trackNa.mesh.visible = false;
+                   const field = this.addBond(atomO, atomNa, 'ionic');
+                   this.transientMeshes.ionicField = field;
+                   // 缩放光圈特效以适应变短的键长
+                   gsap.to(field.mesh.material, { opacity: 0.3, duration: 1.0, yoyo: true, repeat: -1, ease: "sine.inOut" });
+                   gsap.to(field.mesh.scale, { x: 1.2, z: 1.2, duration: 1.0, yoyo: true, repeat: -1, ease: "sine.inOut" });
+                }
+            }, "formIonic+=1.5")
+            .to(this.camera.position, { x: "+=0.3", y: "+=0.3", duration: 0.05, yoyo: true, repeat: 5 }, "formIonic+=1.5")
+            .to(this.camera.position, { x: 0, y: 0, duration: 0.1 })
+            .to(this.interactionState, { targetCameraZ: 11, duration: 1.5, ease: "power2.inOut" }, "+=0.5")
+            .to(this.pivot.position, { x: 0, y: 0, duration: 1.5, ease: "power2.inOut" }, "-=1.5")
+            .add(() => { 
+                if(halo.parent) halo.parent.remove(halo);
+                this.interactionState.isAnimating = false; 
+                this.resetIdleTimer(); 
+            });
+            
+        return tl;
+    }
+
+    // 🌟 同步缩短离子键连接距离 (乙醇版本)
     async animateTransitionToSodiumEthoxide() {
         if (this.isDisposed || !this.transientMeshes.atomH || !this.transientMeshes.bondOH) return;
         this.showMagicTitle("置换推演：O-H 键断裂");
@@ -516,6 +684,7 @@ class MiniModelRenderer {
             .to(this.transientMeshes.atomH.material, { opacity: 0, transparent: true, duration: 0.8, ease: "power1.in" }, "break")
             .to(halo.material, { opacity: 0, duration: 0.5 }, "break");
 
+        // 🌟 缩短钠与氧的离子连接距离
         tl.addLabel("formIonic", "+=0.2")
             .to(atomNa.position, { x: atomO.position.x + 1.4, y: atomO.position.y + 0.8, duration: 1.5 }, "formIonic")
             .add(() => {
