@@ -2,7 +2,9 @@
  * 🌟 专家终极版：深度打磨综合评测模块，升级为 500分 五维立体评价体系！
  * 🌟 错题本进化版：内置 Canvas 长文本自动换行与高度自适应算法，确保高定证书错题 100% 完整显示。
  * 🌟 聚焦版：彻底删减冗余的乙烷、水对比实验，直入核心取代反应，降低认知负荷。
- * 🌟 绝对滚动防截断终极版：彻底摒弃 Flex 居中导致的溢出塌缩问题！启用全局 Block 流式滚动架构，100%保证综合测试等长弹窗在任何屏幕下都可完美显示全部内容并支持顺滑滚动！
+ * 🌟 视觉留白版：增加错题解析行距，采用“宋体”与“黑体”搭配，增强阅读舒适度。
+ * 🌟 居中大屏版：错题弹窗完美居中，字体放大，增加纯文本(TXT)下载复习功能。
+ * 🌟 大考全屏滚动版：强制解决测试弹窗跑向左上角的问题，实现完美全屏居中与上下滑动适配大屏！
  */
 class UIManager {
     constructor() {
@@ -91,43 +93,48 @@ class UIManager {
                 padding: 0 10px; margin: 0 5px; transition: all 0.2s;
             }
             .eq-slot[data-filled] { border: 2px solid #00ffcc; background: rgba(0,255,204,0.1); }
+            .magic-overlay-bg {
+                position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10,10,15,0.95); 
+                z-index: 9999999; display: flex; align-items: center; justify-content: center; 
+                backdrop-filter: blur(8px); pointer-events: auto; transition: background 0.5s, backdrop-filter 0.5s;
+            }
             .showcase-item { transition: transform 0.3s; }
             .showcase-item:hover { transform: translateY(-10px) scale(1.05); }
             .quiz-opt-btn:hover { border-color: #00ffcc !important; transform: translateX(10px); }
-
-            /* 🌟 核心防御装甲：绝对居中，杜绝塌缩跑偏，完美流式滚动 */
-            .magic-scroll-container {
-                position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+            
+            /* 🌟 核心修复：强制大考全屏弹窗居中显示并支持上下滑动 */
+            #ai-trial-panel {
+                position: fixed !important; top: 0 !important; left: 0 !important; 
                 width: 100vw !important; height: 100vh !important;
                 background: rgba(10,10,15,0.95) !important; z-index: 9999999 !important;
-                display: block !important; text-align: center !important; 
-                overflow-y: auto !important; overflow-x: hidden !important;
-                padding: 8vh 0 12vh 0 !important; box-sizing: border-box !important;
-                backdrop-filter: blur(12px) !important; margin: 0 !important;
+                display: flex !important; flex-direction: column !important; 
+                align-items: center !important; justify-content: center !important;
+                backdrop-filter: blur(12px) !important; margin: 0 !important; padding: 0 !important;
             }
-            .magic-scroll-container.hidden { display: none !important; }
+            #ai-trial-panel.hidden {
+                display: none !important;
+            }
+            #ai-trial-panel > div, .challenge-modal {
+                background: rgba(20,20,30,0.98) !important;
+                border: 3px solid var(--rpg-mana, #00ffcc) !important;
+                border-radius: 15px !important;
+                box-shadow: 0 0 50px rgba(0,255,204,0.3) !important;
+                max-width: 1400px !important; width: 90% !important; 
+                max-height: 85vh !important; overflow-y: auto !important; /* 🌟开启防截断垂直滚动 */
+                padding: 60px 80px !important; position: relative !important;
+            }
             
-            /* 所有的测验、成果殿堂、错题弹窗容器采用 Inline-Block 配合父级 Center 实现完美无塌缩居中 */
-            .magic-modal-box {
-                position: relative !important; display: inline-block !important; 
-                text-align: left !important; width: 90% !important; max-width: 1400px !important; 
-                margin: 0 auto !important; padding: 60px 80px !important; 
-                background: rgba(20,20,30,0.98) !important; border: 3px solid var(--rpg-mana, #00ffcc) !important; 
-                border-radius: 15px !important; box-shadow: 0 0 50px rgba(0,255,204,0.4) !important;
-                box-sizing: border-box !important; vertical-align: top !important;
-                height: auto !important; max-height: none !important; overflow: visible !important;
+            .help-content-box {
+                background: rgba(20,20,30,0.98); border: 3px solid var(--rpg-mana, #00ffcc); 
+                border-radius: 15px; padding: 40px 50px; width: 85%; max-width: 1000px; 
+                max-height: 85vh; overflow-y: auto; box-shadow: 0 0 50px rgba(0,255,204,0.4);
+                color: #fff; text-align: left; position: relative;
             }
-            .magic-modal-box.center-text { text-align: center !important; }
-            .magic-modal-box.danger { border-color: #ff4444 !important; }
-
-            /* 重写评级分数框的展示逻辑，适应流式滚动 */
-            #expert-rank-display {
-                position: relative !important; display: inline-block !important;
-                margin: 0 auto 40px auto !important; text-align: center !important; 
-                background: rgba(0,0,0,0.6) !important; padding: 30px 50px !important; 
-                border-radius: 20px !important; box-shadow: 0 0 30px var(--rpg-gold) !important; 
-                vertical-align: middle !important; z-index: 2;
+            .help-module-title {
+                color: var(--rpg-gold, #ffaa00); font-size: 2.2em; margin-top: 30px; margin-bottom: 15px; 
+                border-bottom: 2px solid #444; padding-bottom: 10px; font-weight: bold; text-shadow: 1px 1px 3px #000;
             }
+            .help-step { font-size: 1.6em; line-height: 1.8; margin-bottom: 12px; color: #eee; }
         `;
         document.head.appendChild(style);
     }
@@ -166,16 +173,16 @@ class UIManager {
 
         overlay = document.createElement('div');
         overlay.id = 'help-instructions-overlay';
-        overlay.className = 'magic-scroll-container';
+        overlay.className = 'magic-overlay-bg';
 
         const mod1HTML = `
-            <div style="color: var(--rpg-gold, #ffaa00); font-size: 2.2em; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #444; padding-bottom: 10px; font-weight: bold; text-shadow: 1px 1px 3px #000;">🧩 模块一：结构探秘</div>
-            <div style="font-size: 1.6em; line-height: 1.8; margin-bottom: 12px; color: #eee; background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
+            <div class="help-module-title">🧩 模块一：结构探秘</div>
+            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
                 <span style="color:#00ffcc; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. 拼装出“乙醇”与“二甲醚”两种分子结构。</div>
                 <div style="margin-left: 10px;">2. 完成看图鉴定挑战。</div>
             </div>
-            <div style="font-size: 1.6em; line-height: 1.8; margin-bottom: 12px; color: #eee; background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
+            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
                 <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【C、H、O 按钮】</span> 点击后在空白处生成对应的原子。</div>
                 <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【🖐️ 手形工具】</span> 拖拽空白处平移视角；拖拽框选分子可复制或删除。</div>
@@ -184,13 +191,13 @@ class UIManager {
         `;
 
         const mod2HTML = `
-            <div style="color: var(--rpg-gold, #ffaa00); font-size: 2.2em; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #444; padding-bottom: 10px; font-weight: bold; text-shadow: 1px 1px 3px #000;">💥 模块二：置换反应</div>
-            <div style="font-size: 1.6em; line-height: 1.8; margin-bottom: 12px; color: #eee; background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
+            <div class="help-module-title">💥 模块二：置换反应</div>
+            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
                 <span style="color:#00ffcc; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. 模拟乙醇与钠的反应，生成乙醇钠和氢气。</div>
                 <div style="margin-left: 10px;">2. 完成方程式配平。</div>
             </div>
-            <div style="font-size: 1.6em; line-height: 1.8; margin-bottom: 12px; color: #eee; background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
+            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
                 <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【Na 按钮】</span> 点击投入金属钠原子。</div>
                 <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【切断化学键】</span> 点击切断发红光的 O-H 键，再将 Na 拖至 O 附近置换。</div>
@@ -199,13 +206,13 @@ class UIManager {
         `;
 
         const mod3HTML = `
-            <div style="color: var(--rpg-gold, #ffaa00); font-size: 2.2em; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #444; padding-bottom: 10px; font-weight: bold; text-shadow: 1px 1px 3px #000;">🔥 模块三：催化氧化</div>
-            <div style="font-size: 1.6em; line-height: 1.8; margin-bottom: 12px; color: #eee; background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
+            <div class="help-module-title">🔥 模块三：催化氧化</div>
+            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
                 <span style="color:#00ffcc; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. 模拟乙醇的催化氧化反应，生成乙醛和水。</div>
                 <div style="margin-left: 10px;">2. 完成方程式填写。</div>
             </div>
-            <div style="font-size: 1.6em; line-height: 1.8; margin-bottom: 12px; color: #eee; background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
+            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
                 <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【Cu 按钮】</span> 点击加入氧化铜催化剂，将其拖至 O 原子附近。</div>
                 <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【断键与成键】</span> 切断 O-H 键、α碳上的 C-H 键及 Cu-O 键；点击 C 和 O 生成双键。</div>
@@ -214,13 +221,13 @@ class UIManager {
         `;
 
         const mod4HTML = `
-            <div style="color: var(--rpg-gold, #ffaa00); font-size: 2.2em; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #444; padding-bottom: 10px; font-weight: bold; text-shadow: 1px 1px 3px #000;">🏆 模块四：综合评测</div>
-            <div style="font-size: 1.6em; line-height: 1.8; margin-bottom: 12px; color: #eee; background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
+            <div class="help-module-title">🏆 模块四：综合评测</div>
+            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
                 <span style="color:#00ffcc; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. 回顾全息殿堂中的实验产物。</div>
                 <div style="margin-left: 10px;">2. 完成 5 道随机大考测试题，获取高定证书。</div>
             </div>
-            <div style="font-size: 1.6em; line-height: 1.8; margin-bottom: 12px; color: #eee; background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
+            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
                 <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【📝 开始考核】</span> 点击殿堂下方按钮进入答题。</div>
                 <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【查看错题 / 证书】</span> 考核结束后查看雷达图或保存成果。</div>
@@ -228,6 +235,7 @@ class UIManager {
         `;
 
         let helpContentHTML = "";
+        
         if (this.userStats.finalCompleted) {
             helpContentHTML = mod1HTML + mod2HTML + mod3HTML + mod4HTML;
         } else {
@@ -238,8 +246,8 @@ class UIManager {
         }
         
         overlay.innerHTML = `
-            <div class="magic-modal-box" style="animation: popDown 0.4s ease-out; max-width: 1000px;">
-                <button id="btn-close-help" class="magic-btn" style="position: absolute; top: 20px; right: 30px; font-size: 2.2em; z-index: 100; padding: 10px; background: transparent; border: none; color: #fff; cursor: pointer;">❌</button>
+            <div class="help-content-box magic-scroll">
+                <button id="btn-close-help" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10;">❌</button>
                 <h2 style="color: var(--rpg-mana, #00ffcc); font-size: 3.5em; text-align: center; margin-bottom: 20px; text-shadow: 0 0 15px rgba(0,255,204,0.5);">📜 ${this.userStats.finalCompleted ? '全阶段操作指南' : '本阶段操作指南'}</h2>
                 ${helpContentHTML}
                 <div style="text-align: center; margin-top: 40px;">
@@ -478,13 +486,19 @@ class UIManager {
 
         gallery = document.createElement('div');
         gallery.id = 'final-gallery-overlay'; 
-        gallery.className = 'magic-scroll-container'; 
+        gallery.className = 'magic-overlay-bg magic-scroll'; 
+        
+        gallery.style.backgroundColor = 'rgba(15, 15, 20, 0.9)'; 
+        gallery.style.zIndex = '9999'; 
+        gallery.style.alignItems = 'flex-start';
+        gallery.style.overflowY = 'auto';
+        gallery.style.padding = '50px 0';
         
         gallery.innerHTML = `
-            <div class="magic-modal-box center-text" style="animation: popDown 0.5s ease-out;">
-                <button id="btn-close-final-showcase" class="magic-btn" style="position: absolute; top: 20px; right: 30px; font-size: 2.2em; z-index: 1000000; padding: 10px; background: transparent; border: none; color: #fff; cursor: pointer;">❌</button>
-                <h2 style="color: var(--rpg-gold); font-size: 4em; margin-bottom: 50px; margin-top: 10px; text-shadow: 0 0 25px rgba(255, 215, 0, 0.6); letter-spacing: 5px; font-family: 'Heiti', sans-serif;">🏛️ 炼金成果殿堂</h2>
-                <div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-bottom: 30px; width: 100%;">
+            <button id="btn-close-final-showcase" class="magic-btn close-btn" style="position: fixed; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 100000;">❌</button>
+            <div style="text-align: center; width: 100%; animation: popDown 0.5s ease-out; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: min-content;">
+                <h2 style="color: var(--rpg-gold); font-size: 3.5em; margin-bottom: 40px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); letter-spacing: 5px;">🏛️ 炼金成果殿堂</h2>
+                <div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-bottom: 20px; width: 90%; max-width: 1200px;">
                     <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #00ffcc; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0,255,204,0.3);">
                         <h3 style="color: #00ffcc; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #00ffcc;">基础分子 (乙醇)</h3>
                         <div id="showcase-ethanol" style="width: 260px; height: 260px;"></div>
@@ -498,8 +512,8 @@ class UIManager {
                         <div id="showcase-cu" style="width: 260px; height: 260px;"></div>
                     </div>
                 </div>
-                <p style="color: #ddd; font-size: 1.8em; margin-top: 40px; margin-bottom: 40px; text-shadow: 1px 1px 3px #000;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
-                <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 2.2em; padding: 18px 80px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 15px rgba(255,215,0,0.5); margin-bottom: 20px;">📝 开始最终考核</button>
+                <p style="color: #ddd; font-size: 1.5em; margin-top: 30px; margin-bottom: 30px; text-shadow: 1px 1px 3px #000;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
+                <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 40px;">📝 开始最终考核</button>
             </div>
         `;
         document.body.appendChild(gallery);
@@ -522,7 +536,7 @@ class UIManager {
             ];
             const btnStartQuiz = document.getElementById('btn-start-final-quiz');
             if (btnStartQuiz && typeof gsap !== 'undefined') {
-                gsap.to(btnStartQuiz, { scale: 1.08, boxShadow: "0 0 40px #ffaa00", duration: 0.8, yoyo: true, repeat: -1 });
+                gsap.to(btnStartQuiz, { scale: 1.08, boxShadow: "0 0 30px #ffaa00", duration: 0.8, yoyo: true, repeat: -1 });
             }
         }, 100);
     }
@@ -534,16 +548,8 @@ class UIManager {
 
         const panel = document.getElementById('ai-trial-panel');
         if (panel) {
-            panel.className = 'magic-scroll-container';
-            panel.innerHTML = `
-                <div class="magic-modal-box">
-                    <button id="btn-close-ai" class="magic-btn" style="position: absolute; top: 20px; right: 30px; font-size: 2.2em; z-index: 10000; padding: 10px; background: transparent; border: none; color: #fff; cursor: pointer;">❌</button>
-                    <div id="ai-content" style="width: 100%; box-sizing: border-box;"></div>
-                </div>
-            `;
-            document.getElementById('btn-close-ai').addEventListener('click', () => {
-                panel.classList.add('hidden');
-            });
+            panel.classList.remove('hidden');
+            document.getElementById('btn-close-ai')?.classList.add('hidden'); 
             this.renderFinalQuizQuestion();
         }
     }
@@ -552,15 +558,16 @@ class UIManager {
         const q = this.finalQuizState.questions[this.finalQuizState.currentIndex];
         const container = document.getElementById('ai-content');
         
+        // 🌟 核心修复：大幅调优字体与间距，大屏阅读如同翻阅高清绘本般清晰
         let html = `
-            <div style="width: 100%; box-sizing: border-box; animation: fadeIn 0.4s;">
-                <h3 style="color: var(--rpg-mana); font-size: 2.5em; margin-bottom: 20px; margin-top: 10px; text-shadow: 0 0 10px rgba(0,255,204,0.5);">最终考核 (${this.finalQuizState.currentIndex + 1}/5)</h3>
-                <div style="font-size: 2em; color: #fff; margin-bottom: 40px; line-height: 1.6; background: rgba(0,0,0,0.5); padding: 40px 50px; border-radius: 12px; border-left: 6px solid var(--rpg-mana);">${q.question}</div>
-                <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="text-align: left; padding: 20px; animation: fadeIn 0.4s;">
+                <h3 style="color: var(--rpg-mana); font-size: 2.2em; margin-bottom: 20px; text-shadow: 0 0 10px rgba(0,255,204,0.5);">最终考核 (${this.finalQuizState.currentIndex + 1}/5)</h3>
+                <div style="font-size: 1.8em; color: #fff; margin-bottom: 30px; line-height: 1.6; background: rgba(0,0,0,0.5); padding: 30px 40px; border-radius: 12px; border-left: 6px solid var(--rpg-mana);">${q.question}</div>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
         `;
         
         q.options.forEach((opt, idx) => {
-            html += `<button class="magic-btn quiz-opt-btn" data-idx="${idx}" style="text-align: left; padding: 25px 40px; font-size: 1.8em; border-color: #666; color: #ddd; background: rgba(0,0,0,0.6); transition: all 0.2s;">${String.fromCharCode(65+idx)}. ${opt}</button>`;
+            html += `<button class="magic-btn quiz-opt-btn" data-idx="${idx}" style="text-align: left; padding: 18px 30px; font-size: 1.5em; border-color: #666; color: #ddd; background: rgba(0,0,0,0.6); transition: all 0.2s;">${String.fromCharCode(65+idx)}. ${opt}</button>`;
         });
 
         html += `</div></div>`;
@@ -593,15 +600,16 @@ class UIManager {
         const resultColor = isCorrect ? "var(--rpg-mana)" : "var(--rpg-danger)";
         const resultTitle = isCorrect ? "回答正确！" : "回答错误...";
         
+        // 🌟 核心修复：答案与解析同频放大，大屏显示力量感十足
         container.innerHTML = `
-            <div style="width: 100%; box-sizing: border-box; animation: popDown 0.4s;">
+            <div style="text-align: left; padding: 20px; animation: popDown 0.4s;">
                 <h3 style="color:${resultColor}; font-size: 2.5em; margin-bottom: 20px; text-shadow: 0 0 10px ${resultColor};">${resultTitle}</h3>
-                <div style="font-size: 2em; line-height: 1.8; padding: 40px 50px; background: rgba(0,0,0,0.6); border-radius: 15px; border: 3px solid ${resultColor}; color: #fff;">
+                <div style="font-size: 1.6em; line-height: 1.8; padding: 30px 40px; background: rgba(0,0,0,0.6); border-radius: 15px; border: 3px solid ${resultColor}; color: #fff;">
                     ${isCorrect ? `<span style="color:#00ffcc; font-weight:bold;">太棒了！</span><br>` : `<span style="color:#ff4444; text-decoration:line-through;">你选择了：${q.options[selectedIdx]}</span><br><span style="color:#00ffcc; font-weight:bold;">正确答案：${q.options[q.correctIdx]}</span><br><br>`}
                     ${q.explanation}
                 </div>
-                <div style="margin-top: 50px; text-align: center;">
-                    <button id="btn-next-quiz" class="magic-btn" style="font-size: 2em; padding: 20px 80px; border-color: var(--rpg-gold); color: var(--rpg-gold); box-shadow: 0 0 20px rgba(255,215,0,0.3);">${this.finalQuizState.currentIndex < 4 ? '下一题' : '查看最终成绩'}</button>
+                <div style="margin-top: 40px; text-align: center;">
+                    <button id="btn-next-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold); color: var(--rpg-gold); box-shadow: 0 0 20px rgba(255,215,0,0.3);">${this.finalQuizState.currentIndex < 4 ? '下一题' : '查看最终成绩'}</button>
                 </div>
             </div>
         `;
@@ -639,13 +647,13 @@ class UIManager {
 
         overlay = document.createElement('div');
         overlay.id = 'equation-minigame-overlay';
-        overlay.className = 'magic-scroll-container';
+        overlay.className = 'challenge-overlay magic-overlay-bg';
         
         let contentHTML = '';
 
         if (type === 'sodium') {
             contentHTML = `
-                <button id="btn-close-final-eq-popup" class="magic-btn" style="position: absolute; top: 20px; right: 30px; font-size: 2.2em; z-index: 1000000; padding: 10px; background: transparent; border: none; color: #fff; cursor: pointer;">❌</button>
+                <button id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 60px; height: 60px; font-size: 2.2em; z-index: 1000000;">❌</button>
                 <h2 style="color: var(--rpg-mana); font-size: 3em; margin-bottom: 15px; margin-top: 10px;">✅ 置换反应方程式测试</h2>
                 <p style="color: #fff; font-size: 1.6em; margin-bottom: 25px;">请拖拽正确的系数和产物，完成方程式的配平：</p>
                 
@@ -665,13 +673,11 @@ class UIManager {
                 </div>
 
                 <p id="final-eq-feedback" style="color: #ff4444; font-size: 1.8em; height: 30px; margin-bottom: 20px; font-weight: bold;"></p>
-                <div style="text-align: center;">
-                    <button id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold);">提交验证</button>
-                </div>
+                <button id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold);">提交验证</button>
             `;
         } else if (type === 'oxidation') {
             contentHTML = `
-                <button id="btn-close-final-eq-popup" class="magic-btn" style="position: absolute; top: 20px; right: 30px; font-size: 2.2em; z-index: 1000000; padding: 10px; background: transparent; border: none; color: #fff; cursor: pointer;">❌</button>
+                <button id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 60px; height: 60px; font-size: 2.2em; z-index: 1000000;">❌</button>
                 <h2 style="color: var(--rpg-mana); font-size: 3em; margin-bottom: 15px; margin-top: 10px;">✅ 催化氧化方程式测试</h2>
                 <p style="color: #fff; font-size: 1.6em; margin-bottom: 25px;">请拖拽正确的化学计量数、产物与反应条件，完成方程式书写：</p>
                 
@@ -698,14 +704,12 @@ class UIManager {
                 </div>
 
                 <p id="final-eq-feedback" style="color: #ff4444; font-size: 1.8em; height: 30px; margin-bottom: 20px; font-weight: bold;"></p>
-                <div style="text-align: center;">
-                    <button id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold);">提交验证</button>
-                </div>
+                <button id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold);">提交验证</button>
             `;
         }
 
         overlay.innerHTML = `
-            <div class="magic-modal-box center-text" style="animation: popDown 0.4s ease-out;">
+            <div class="challenge-modal" style="text-align: center; max-width: 1000px; padding: 30px 40px; max-height: 90vh; overflow-y: auto; background: rgba(20,20,30,0.95); border: 2px solid #00ffcc; border-radius: 12px; box-shadow: 0 0 30px rgba(0,255,204,0.3); animation: popDown 0.4s ease-out; position: relative;">
                 ${contentHTML}
             </div>
         `;
@@ -1119,10 +1123,7 @@ class UIManager {
                 }
             }
             
-            if (id === 'btn-close-ai') {
-                const panel = document.getElementById('ai-trial-panel');
-                if (panel) panel.classList.add('hidden');
-            }
+            if (id === 'btn-close-ai') document.getElementById('ai-trial-panel')?.classList.add('hidden');
             
             if (id === 'btn-close-eval') {
                 document.getElementById('evaluation-panel')?.classList.add('hidden');
@@ -1377,19 +1378,8 @@ class UIManager {
         const panel = document.getElementById('ai-trial-panel');
         if (panel) {
             panel.classList.remove('hidden');
-            panel.classList.add('magic-scroll-container');
-            // 完全抛弃 Flex，改为内联块控制
-            panel.innerHTML = `
-                <div class="magic-modal-box">
-                    <button id="btn-close-ai" class="magic-btn close-btn">❌</button>
-                    <div id="ai-content" style="width: 100%; box-sizing: border-box;"></div>
-                </div>
-            `;
-            document.getElementById('btn-close-ai').addEventListener('click', () => {
-                panel.classList.add('hidden');
-                panel.classList.remove('magic-scroll-container');
-            });
-            this.renderFinalQuizQuestion();
+            document.getElementById('ai-content').innerHTML = `<p style="font-size: 1.8em; color: var(--rpg-mana);">正在生成随堂测试题...</p>`;
+            document.getElementById('btn-close-ai')?.classList.remove('hidden');
         }
     }
 
@@ -1400,9 +1390,7 @@ class UIManager {
         });
         const panel = document.getElementById('evaluation-panel');
         if(!panel) return;
-        
         panel.classList.remove('hidden');
-        panel.classList.add('magic-scroll-container');
 
         const score1 = 20 + (this.userStats.foundIsomer ? 80 : 0);
         const score2 = this.userStats.linearStructuresPassed ? 100 : 0;
@@ -1423,7 +1411,8 @@ class UIManager {
         if (!rankDiv) {
             rankDiv = document.createElement('div');
             rankDiv.id = 'expert-rank-display';
-            panel.insertBefore(rankDiv, panel.firstChild);
+            rankDiv.style.cssText = `position: absolute; top: 40px; left: 50px; text-align: center; background: rgba(0,0,0,0.6); padding: 20px 30px; border-radius: 20px; border: 2px solid ${rankColor}; box-shadow: 0 0 30px ${rankColor}; transform: rotate(-10deg); animation: popDown 0.8s ease-out;`;
+            panel.appendChild(rankDiv);
         }
         rankDiv.innerHTML = `
             <div style="font-size: 1.5em; color: #fff; margin-bottom: 5px;">综合评分: <span style="color:var(--rpg-mana); font-weight:bold;">${totalScore}</span> / 500</div>
@@ -1459,19 +1448,18 @@ class UIManager {
         if (existingPanel) existingPanel.remove();
         const panel = document.createElement('div');
         panel.id = 'wrong-question-panel';
-        panel.className = 'magic-scroll-container';
+        panel.className = 'magic-scroll';
         
-        let content = `
-            <div class="magic-modal-box danger" style="animation: popDown 0.4s ease-out;">
-                <button class="magic-btn close-btn" onclick="document.getElementById('wrong-question-panel').remove()">❌</button>
-                <h2 style="color: #ff4444; text-align: center; margin-bottom: 40px; font-size: 3.5em; font-family: 'Heiti', 'SimHei', sans-serif; text-shadow: 2px 2px 5px #000;">错题档案本</h2>
-        `;
+        panel.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 1400px; max-height: 85vh; z-index: 9999999; background: rgba(20,20,30,0.95); border: 3px solid #ff4444; border-radius: 15px; padding: 60px; overflow-y: auto; box-shadow: 0 0 60px rgba(0,0,0,0.9); backdrop-filter: blur(12px); display: flex; flex-direction: column;';
+        
+        let content = `<h2 style="color: #ff4444; text-align: center; margin-bottom: 40px; font-size: 3.5em; font-family: 'Heiti', 'SimHei', sans-serif; text-shadow: 2px 2px 5px #000;">错题档案本</h2>`;
         
         if (!this.userStats.wrongQuestions || this.userStats.wrongQuestions.length === 0) {
             content += `<div style="text-align: center; padding: 50px; background: rgba(0,255,204,0.1); border-radius: 20px;"><h3 style="color: #00ffcc; font-size: 3em; font-family: 'Heiti', sans-serif;">完美无瑕！</h3><p style="color: #fff; font-size: 2em; margin-top: 30px; font-family: 'Songti', 'SimSun', serif;">大考全对，无错题记录。</p></div>`;
         } else {
             this.userStats.wrongQuestions.forEach((wq, index) => {
                 let modText = ["", "探究阶段", "取代实验", "氧化实验", "最终大考"][wq.module] || "考核点";
+                
                 content += `
                     <div style="background: rgba(0,0,0,0.6); padding: 40px; border: 2px solid #ff4444; border-radius: 12px; margin-bottom: 30px; text-align: left;">
                         <div style="color: #ffaa00; font-weight: bold; margin-bottom: 20px; font-size: 2.5em; font-family: 'Heiti', sans-serif;">记录 #${index + 1} &nbsp;<span style="color:#aaa; font-size:0.8em; font-weight:normal;">(${modText})</span></div>
@@ -1482,10 +1470,9 @@ class UIManager {
         }
         
         content += `
-                <div style="text-align: center; margin-top: 50px; display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
-                    <button id="btn-download-wq-txt" class="magic-btn" style="font-size: 2.5em; font-family: 'Heiti', sans-serif; padding: 15px 50px; border-color: #00ffcc; color: #00ffcc; box-shadow: 0 0 20px rgba(0,255,204,0.3);">⬇️ 下载错题复习(TXT)</button>
-                    <button class="magic-btn" onclick="document.getElementById('wrong-question-panel').remove()" style="font-size: 2.5em; font-family: 'Heiti', sans-serif; padding: 15px 50px; border-color: #fff; color: #fff;">❌ 关闭档案</button>
-                </div>
+            <div style="text-align: center; margin-top: 50px; display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+                <button id="btn-download-wq-txt" class="magic-btn" style="font-size: 2.5em; font-family: 'Heiti', sans-serif; padding: 15px 50px; border-color: #00ffcc; color: #00ffcc; box-shadow: 0 0 20px rgba(0,255,204,0.3);">⬇️ 下载错题复习(TXT)</button>
+                <button class="magic-btn" onclick="document.getElementById('wrong-question-panel').remove()" style="font-size: 2.5em; font-family: 'Heiti', sans-serif; padding: 15px 50px; border-color: #fff; color: #fff;">❌ 关闭档案</button>
             </div>
         `;
         
