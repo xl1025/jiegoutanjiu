@@ -248,7 +248,7 @@ class UIManager {
             </div>
             <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
                 <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
-                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【📝 开始考核】</span> 点击殿堂下方发光按钮进入答题环节。</div>
+                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【📝】图标按钮</span> 点击殿堂下方发光按钮进入答题环节。</div>
                 <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【查看错题 / 证书】</span> 考核结束后查看雷达图，查漏补缺或保存成果。</div>
             </div>
         `;
@@ -549,6 +549,7 @@ class UIManager {
         gallery.style.backgroundColor = 'rgba(15, 15, 20, 0.9)';
         gallery.style.zIndex = '9999'; 
         
+        // 🌟 核心修改点：下方【开始考核】相关区域
         gallery.innerHTML = `
             <button id="btn-close-final-showcase" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 100000;">❌</button>
             <div style="text-align: center; width: 100%; animation: popDown 0.5s ease-out; display: flex; flex-direction: column; align-items: center; justify-content: center;">
@@ -567,10 +568,8 @@ class UIManager {
                         <div id="showcase-cu" style="width: 260px; height: 260px;"></div>
                     </div>
                 </div>
-                <p style="color: #ddd; font-size: 1.5em; margin-top: 30px; margin-bottom: 30px; text-shadow: 1px 1px 3px #000;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
-                <div style="width: 100%; display: flex; justify-content: flex-start; padding-left: 8%;">
-                    <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 10px rgba(255,215,0,0.5);">📝 开始最终考核</button>
-                </div>
+                <p style="color: #ddd; font-size: 1.5em; margin-top: 30px; margin-bottom: 30px; text-shadow: 1px 1px 3px #000;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的图标按钮。</p>
+                <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 3em; padding: 0; width: 90px; height: 90px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 10px rgba(255,215,0,0.5);">📝</button>
             </div>
         `;
         document.body.appendChild(gallery);
@@ -1136,7 +1135,7 @@ class UIManager {
             box.addEventListener('pointermove', (e) => {
                 if (!isDragging) return;
                 state.x = e.clientX - startX;
-                startY = e.clientY - startY;
+                state.y = e.clientY - startY;
                 updateTransform();
             });
 
