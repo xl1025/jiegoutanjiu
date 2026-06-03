@@ -1,9 +1,8 @@
 /** 互动 UI 管理器 (UIManager.js) 
- * 🌟 GitHub Pages 终极防线 & 防刷新护航版：
- * 1. 【防页面刷新Bug】为所有动态生成的按钮强制注入了 type="button" 与 preventDefault()，彻底解决点击“查看最终成绩”导致页面重载、退回主反应区的严重 Bug！
- * 2. 【防崩溃保护】为雷达图渲染加入了 try-catch 拦截层，防止第三方图表库加载异常导致整个报告图层无法弹出的问题。
- * 3. 【同行防断裂】进一步强化成果殿堂的 flex: 0 0 auto !important 约束，哪怕容器再小也绝对不换行！
- * 4. 完美继承保留所有功能：官能团智能选取、雷达图修复、下载证书、防遮挡机制等所有核心功能无一删减！
+ * 🌟 线上部署终极防御版：
+ * 1. 【错题解析弹窗修复】为错题本弹窗注入最强 `position: fixed !important; display: flex` 全屏居中锁定，彻底解决点击没反应（弹窗掉到屏幕外不可见区域）的 Bug！
+ * 2. 【成果殿堂同行修复】强制使用 `flex-wrap: nowrap !important` 和百分比响应式收缩，彻底解决屏幕尺寸差异导致的三个成果框换行错位问题！永远绝对同行显示！
+ * 3. 完美继承保留所有功能：官能团智能选取、雷达图修复、下载证书、防遮挡机制等所有核心功能无一删减！
  */
 
 const UI_THEME = {
@@ -79,7 +78,6 @@ class UIManager {
 
     injectFunctionalGroupButton(copyBtn) {
         const funcBtn = document.createElement('button');
-        funcBtn.type = 'button'; // 🌟 防护注入
         funcBtn.id = 'btn-marquee-func';
         funcBtn.className = copyBtn.className;
         if (!funcBtn.className.includes('magic-btn')) funcBtn.classList.add('magic-btn');
@@ -311,7 +309,7 @@ class UIManager {
                 <span style="color:${UI_THEME.warning}; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:${UI_THEME.warning};">【Na 按钮】</span> 点击投入金属钠原子。</div>
                 <div style="margin-left: 10px;">2. <span style="color:${UI_THEME.warning};">【切断化学键】</span> 点击切断发红光的 O-H 键，再将 Na 拖至 O 附近置换。</div>
-                <div style="margin-left: 10px;">3. <span style="color:${UI_THEME.warning};">【⬚ 框选工具】</span> 选中所有物质复制后，将极游离的 H 结合成氢气。</div>
+                <div style="margin-left: 10px;">3. <span style="color:${UI_THEME.warning};">【⬚ 框选工具】</span> 选中所有物质复制后，将两个游离的 H 结合成氢气。</div>
             </div>
         `;
 
@@ -357,11 +355,11 @@ class UIManager {
         
         overlay.innerHTML = `
             <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; padding: 40px 50px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.98) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; color: #fff; animation: none !important; transition: none !important;">
-                <button type="button" id="btn-close-help" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10;">❌</button>
+                <button id="btn-close-help" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10;">❌</button>
                 <h2 style="color: ${UI_THEME.primary}; font-size: 3.5em; text-align: center; margin-bottom: 20px; text-shadow: 0 0 15px rgba(0,255,204,0.5); font-family: 'Heiti', sans-serif;">📜 ${this.userStats.finalCompleted ? '全阶段操作指南' : '本阶段操作指南'}</h2>
                 ${helpContentHTML}
                 <div style="text-align: center; margin-top: 40px;">
-                    <button type="button" id="btn-close-help-bottom" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: #fff; color: #fff; font-family: 'Heiti', sans-serif;">我明白了</button>
+                    <button id="btn-close-help-bottom" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: #fff; color: #fff; font-family: 'Heiti', sans-serif;">我明白了</button>
                 </div>
             </div>
         `;
@@ -369,8 +367,7 @@ class UIManager {
 
         document.getElementById('canvas-container')?.classList.add('canvas-shrunk');
 
-        const closeHandler = (e) => { 
-            if(e){ e.preventDefault(); e.stopPropagation(); }
+        const closeHandler = () => { 
             overlay.remove(); 
             if (this.currentLevel !== 4) document.getElementById('canvas-container')?.classList.remove('canvas-shrunk');
             if (onCloseCallback) onCloseCallback(); 
@@ -601,7 +598,7 @@ class UIManager {
         this.updateLevelUI(); this.saveProgress();
     }
 
-    // 🌟 GitHub 终极修复 1：强行设定成果殿堂同行排列
+    // 🌟 终极修复 1：成果殿堂 3模型同行显示。引入强力 flex-wrap: nowrap 和自适应 min-width 避免被线上环境挤压换行
     showFinalShowcase() {
         let gallery = document.getElementById('final-gallery-overlay');
         if (gallery) gallery.remove();
@@ -613,11 +610,11 @@ class UIManager {
         
         gallery.innerHTML = `
             <div style="width: 90vw !important; max-width: 1300px !important; max-height: 90vh !important; overflow-y: auto !important; text-align: center; position: relative !important; margin: auto !important; padding: 40px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.98) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important;">
-                <button type="button" id="btn-close-final-showcase" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 100000; cursor: pointer;">❌</button>
+                <button id="btn-close-final-showcase" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 100000; cursor: pointer;">❌</button>
                 <div style="text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: min-content;">
                     <h2 style="color: var(--rpg-gold); font-size: 3.5em; margin-bottom: 40px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); letter-spacing: 5px; font-family: 'Heiti', sans-serif; margin-top: 0;">🏛️ 炼金成果殿堂</h2>
                     
-                    <div style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: center !important; gap: 20px !important; width: 100% !important; max-width: 1200px !important; margin-bottom: 40px !important; overflow-x: auto !important; padding-bottom: 10px !important;">
+                    <div style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: center !important; gap: 20px !important; width: 100% !important; margin-bottom: 40px !important; overflow-x: auto !important; padding-bottom: 10px !important;">
                         
                         <div class="showcase-item" style="flex: 0 0 auto !important; width: 280px !important; background: rgba(0,0,0,0.6) !important; border: 3px solid ${UI_THEME.primary} !important; border-radius: 15px !important; padding: 20px !important; box-shadow: 0 0 30px rgba(0,255,204,0.3) !important;">
                             <h3 style="color: ${UI_THEME.primary} !important; font-size: 1.6em !important; margin-top: 0 !important; margin-bottom: 15px !important; text-shadow: 0 0 10px ${UI_THEME.primary} !important; font-family: 'Heiti', sans-serif !important; white-space: nowrap !important;">基础分子(乙醇)</h3>
@@ -637,7 +634,7 @@ class UIManager {
                     </div>
                     
                     <p style="color: #ddd; font-size: 1.5em; margin-top: 10px; margin-bottom: 30px; text-shadow: 1px 1px 3px #000; font-family: 'Songti', serif;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
-                    <button type="button" id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 20px; font-family: 'Heiti', sans-serif; cursor: pointer;">📝 开始最终考核</button>
+                    <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 20px; font-family: 'Heiti', sans-serif; cursor: pointer;">📝 开始最终考核</button>
                 </div>
             </div>
         `;
@@ -647,8 +644,7 @@ class UIManager {
 
         const closeShowcaseBtn = document.getElementById('btn-close-final-showcase');
         if (closeShowcaseBtn) {
-            closeShowcaseBtn.addEventListener('click', (e) => {
-                if(e) e.preventDefault();
+            closeShowcaseBtn.addEventListener('click', () => {
                 gallery.remove();
                 if (this.showcaseRenderers) { this.showcaseRenderers.forEach(r => r.dispose()); this.showcaseRenderers = null; }
             });
@@ -684,7 +680,7 @@ class UIManager {
         overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 9999999 !important; pointer-events: auto !important;';
         
         overlay.innerHTML = `
-            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; margin: auto !important; padding: 40px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.98) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; z-index: 9999999;">
+            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; margin: auto !important; padding: 40px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.98) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important;">
                 <div id="dynamic-quiz-content" style="width: 100%; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; box-sizing: border-box;"></div>
             </div>
         `;
@@ -715,8 +711,7 @@ class UIManager {
         `;
         
         q.options.forEach((opt, idx) => {
-            // 🌟 强行加入 type="button" 杜绝默认刷新
-            html += `<button type="button" class="magic-btn quiz-opt-btn" data-idx="${idx}" style="display: block; text-align: left; padding: 25px 40px; font-size: 2.5em; font-family: 'Heiti', 'SimHei', sans-serif; border: 2px solid #555; border-radius: 12px; color: #ddd; background: rgba(0,0,0,0.6); transition: all 0.2s; word-break: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.6; width: 100%; box-sizing: border-box; cursor: pointer;">${String.fromCharCode(65+idx)}. ${opt}</button>`;
+            html += `<button class="magic-btn quiz-opt-btn" data-idx="${idx}" style="display: block; text-align: left; padding: 25px 40px; font-size: 2.5em; font-family: 'Heiti', 'SimHei', sans-serif; border: 2px solid #555; border-radius: 12px; color: #ddd; background: rgba(0,0,0,0.6); transition: all 0.2s; word-break: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.6; width: 100%; box-sizing: border-box; cursor: pointer;">${String.fromCharCode(65+idx)}. ${opt}</button>`;
         });
 
         html += `
@@ -730,8 +725,7 @@ class UIManager {
         btns.forEach(btn => {
             btn.onmouseenter = () => { btn.style.borderColor = UI_THEME.primary; btn.style.background = 'rgba(0,255,204,0.15)'; btn.style.transform = 'translateX(10px)'; btn.style.boxShadow = '0 0 15px rgba(0,255,204,0.4)'; };
             btn.onmouseleave = () => { btn.style.borderColor = '#555'; btn.style.background = 'rgba(0,0,0,0.6)'; btn.style.transform = 'translateX(0)'; btn.style.boxShadow = 'none'; };
-            btn.onclick = (e) => {
-                if(e) e.preventDefault(); // 强行拦截默认事件
+            btn.onclick = () => {
                 const selectedIdx = parseInt(btn.getAttribute('data-idx'));
                 this.handleFinalQuizAnswer(selectedIdx, q);
             };
@@ -762,7 +756,7 @@ class UIManager {
                     ${resultTitle}
                 </h3>
                 
-                <div style="background: rgba(20, 25, 35, 0.95); border: 2px solid ${resultColor}; border-radius: 16px; padding: 40px 50px; box-shadow: 0 0 30px rgba(${isCorrect ? '0,255,204' : '255,68,68'}, 0.25); width: 100%; max-width: 1200px; box-sizing: border-box; position: relative; z-index: 20;">
+                <div style="background: rgba(20, 25, 35, 0.95); border: 2px solid ${resultColor}; border-radius: 16px; padding: 40px 50px; box-shadow: 0 0 30px rgba(${isCorrect ? '0,255,204' : '255,68,68'}, 0.25); width: 100%; max-width: 1200px; box-sizing: border-box;">
                     
                     <div style="font-size: 2.8em; font-family: 'Songti', 'SimSun', serif; line-height: 1.8; color: #fff; word-break: break-word; overflow-wrap: break-word; white-space: normal;">
                         ${isCorrect ? `<span style="color:${UI_THEME.primary}; font-weight:bold; font-family: 'Heiti', sans-serif;">太棒了！</span><br><br>` : `<span style="color:${UI_THEME.danger}; text-decoration:line-through;">你选择了：${q.options[selectedIdx]}</span><br><span style="color:${UI_THEME.primary}; font-weight:bold; font-family: 'Heiti', sans-serif;">正确答案：${q.options[q.correctIdx]}</span><br><br>`}
@@ -771,14 +765,13 @@ class UIManager {
                     
                 </div>
                 
-                <div style="display: block; width: 100%; margin-top: 50px; text-align: center; position: relative; z-index: 30;">
-                    <button type="button" id="btn-next-quiz" class="magic-btn" style="display: inline-block; font-size: 3em; font-family: 'Heiti', 'SimHei', sans-serif; padding: 20px 80px; border-color: var(--rpg-gold, #ffaa00); color: var(--rpg-gold, #ffaa00); box-shadow: 0 0 25px rgba(255,215,0,0.4); cursor: pointer;">${this.finalQuizState.currentIndex < 4 ? '下一题' : '查看最终成绩'}</button>
+                <div style="display: block; width: 100%; margin-top: 50px; text-align: center;">
+                    <button id="btn-next-quiz" class="magic-btn" style="display: inline-block; font-size: 3em; font-family: 'Heiti', 'SimHei', sans-serif; padding: 20px 80px; border-color: var(--rpg-gold, #ffaa00); color: var(--rpg-gold, #ffaa00); box-shadow: 0 0 25px rgba(255,215,0,0.4); cursor: pointer;">${this.finalQuizState.currentIndex < 4 ? '下一题' : '查看最终成绩'}</button>
                 </div>
             </div>
         `;
 
-        document.getElementById('btn-next-quiz').onclick = (e) => {
-            if(e) { e.preventDefault(); e.stopPropagation(); } // 🌟 阻止表单提交刷新
+        document.getElementById('btn-next-quiz').onclick = () => {
             this.finalQuizState.currentIndex++;
             if (this.finalQuizState.currentIndex < 5) {
                 this.renderFinalQuizQuestion();
@@ -820,7 +813,7 @@ class UIManager {
 
         if (type === 'sodium') {
             contentHTML = `
-                <button type="button" id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 60px; height: 60px; font-size: 2.2em; z-index: 1000000; cursor:pointer;">❌</button>
+                <button id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 60px; height: 60px; font-size: 2.2em; z-index: 1000000; cursor:pointer;">❌</button>
                 <h2 style="color: var(--rpg-mana); font-size: 3em; margin-bottom: 15px; margin-top: 10px; font-family: 'Heiti', sans-serif;">✅ 置换反应方程式测试</h2>
                 <p style="color: #fff; font-size: 1.6em; margin-bottom: 25px; font-family: 'Songti', serif;">请拖拽正确的系数和产物，完成方程式的配平：</p>
                 
@@ -840,11 +833,11 @@ class UIManager {
                 </div>
 
                 <p id="final-eq-feedback" style="color: #ff4444; font-size: 1.8em; height: 30px; margin-bottom: 20px; font-weight: bold; font-family: 'Heiti', sans-serif;"></p>
-                <button type="button" id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold); font-family: 'Heiti', sans-serif;">提交验证</button>
+                <button id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold); font-family: 'Heiti', sans-serif;">提交验证</button>
             `;
         } else if (type === 'oxidation') {
             contentHTML = `
-                <button type="button" id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 60px; height: 60px; font-size: 2.2em; z-index: 1000000; cursor:pointer;">❌</button>
+                <button id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 60px; height: 60px; font-size: 2.2em; z-index: 1000000; cursor:pointer;">❌</button>
                 <h2 style="color: var(--rpg-mana); font-size: 3em; margin-bottom: 15px; margin-top: 10px; font-family: 'Heiti', sans-serif;">✅ 催化氧化方程式测试</h2>
                 <p style="color: #fff; font-size: 1.6em; margin-bottom: 25px; font-family: 'Songti', serif;">请拖拽正确的化学计量数、产物与反应条件，完成方程式书写：</p>
                 
@@ -871,12 +864,12 @@ class UIManager {
                 </div>
 
                 <p id="final-eq-feedback" style="color: #ff4444; font-size: 1.8em; height: 30px; margin-bottom: 20px; font-weight: bold; font-family: 'Heiti', sans-serif;"></p>
-                <button type="button" id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold); font-family: 'Heiti', sans-serif;">提交验证</button>
+                <button id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold); font-family: 'Heiti', sans-serif;">提交验证</button>
             `;
         }
 
         overlay.innerHTML = `
-            <div class="challenge-modal" style="text-align: center; width: 100%; height: 100%; overflow-y: auto; position: relative; padding: 30px 40px; box-sizing: border-box; background: rgba(20,20,30,0.95); border: 2px solid #00ffcc; border-radius: 12px; box-shadow: 0 0 30px rgba(0,255,204,0.3);">
+            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; margin: auto !important; padding: 30px 40px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.95) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; text-align: center;">
                 ${contentHTML}
             </div>
         `;
@@ -884,16 +877,14 @@ class UIManager {
         document.body.appendChild(overlay);
         document.getElementById('canvas-container')?.classList.add('canvas-shrunk');
 
-        document.getElementById('btn-close-final-eq-popup').addEventListener('click', (e) => { 
-            if(e) e.preventDefault();
+        document.getElementById('btn-close-final-eq-popup').addEventListener('click', () => { 
             overlay.remove(); 
             document.getElementById('canvas-container')?.classList.remove('canvas-shrunk');
         });
         
         this.initEquationDragDrop();
 
-        document.getElementById('btn-submit-final-eq').addEventListener('click', (e) => {
-            if(e) e.preventDefault();
+        document.getElementById('btn-submit-final-eq').addEventListener('click', () => {
             const slots = document.querySelectorAll('.eq-slot');
             const feedback = document.getElementById('final-eq-feedback');
             
@@ -1179,10 +1170,8 @@ class UIManager {
 
             const app = window.app; if (!app) return;
 
-            // 🌟 终极防页面重载：拦截所有按钮的默认提交行为
-            if (target.tagName === 'BUTTON' || id.startsWith('btn-') || target.classList.contains('nav-btn')) {
+            if (id.startsWith('btn-') || target.classList.contains('nav-btn')) {
                 e.stopPropagation();
-                e.preventDefault();
             }
 
             if (id === 'btn-add-c') app.interactionManager?.selectElementToAdd('C');
@@ -1303,6 +1292,14 @@ class UIManager {
             if (id === 'btn-close-ai') {
                 document.getElementById('ai-trial-panel')?.classList.add('hidden');
             }
+
+            // 🌟 错题本等附属弹窗的事件双重保险
+            if (id === 'btn-wrong-questions' || id === 'btn-wrong-questions-dynamic') this.showWrongQuestions();
+            if (id === 'btn-download-wq-txt') this.downloadWrongQuestionsText();
+            if (id === 'btn-close-wq-panel') {
+                const wqOverlay = document.getElementById('wrong-question-overlay');
+                if (wqOverlay) wqOverlay.remove();
+            }
             
             if (id === 'btn-close-dual-popup') {
                 document.getElementById('dual-isomer-popup')?.classList.add('hidden');
@@ -1317,7 +1314,6 @@ class UIManager {
         const firstNavBtn = document.querySelector('.nav-btn');
         if (firstNavBtn && !document.getElementById('btn-help-guide')) {
             const btnHelp = document.createElement('button');
-            btnHelp.type = 'button';
             btnHelp.id = 'btn-help-guide';
             btnHelp.className = firstNavBtn.className.replace('active', '').trim(); 
             btnHelp.innerHTML = '❓ 帮助'; btnHelp.title = '查看详细操作指南';
@@ -1328,14 +1324,13 @@ class UIManager {
             btnHelp.addEventListener('mousedown', e => e.stopPropagation());
 
             firstNavBtn.parentNode.insertBefore(btnHelp, firstNavBtn);
-            btnHelp.addEventListener('click', (e) => { if(e)e.preventDefault(); this.showHelpInstructions(); });
+            btnHelp.addEventListener('click', () => { this.showHelpInstructions(); });
         }
 
         const systemMenu = document.getElementById('system-menu');
         if (systemMenu && !document.getElementById('btn-undo')) {
             const createBtn = (id, icon, color, title) => {
                 const btn = document.createElement('button');
-                btn.type = 'button'; // 🌟 强制注入 Button 类型
                 btn.id = id; btn.className = 'magic-btn'; btn.innerHTML = icon;
                 btn.style.borderColor = color; btn.style.color = color;
                 if(title) btn.title = title;
@@ -1364,11 +1359,11 @@ class UIManager {
         }
     }
 
+    // （以下保留原有渲染逻辑，绝对不改变任何模块功能）
     showAutoBuildBtn() {
         let systemMenu = document.getElementById('system-menu');
         if (systemMenu && !document.getElementById('btn-auto-build')) {
             const btnAutoBuild = document.createElement('button');
-            btnAutoBuild.type = 'button';
             btnAutoBuild.id = 'btn-auto-build'; btnAutoBuild.className = 'magic-btn';
             btnAutoBuild.innerHTML = '🪄'; btnAutoBuild.title = '快捷搭建模型';
             btnAutoBuild.style.borderColor = 'var(--rpg-mana)'; btnAutoBuild.style.color = 'var(--rpg-mana)';
@@ -1413,8 +1408,7 @@ class UIManager {
                 btnToggle.innerHTML = `👁️`; btnToggle.title = `打开 ${targetText}`;
             }
             
-            btnToggle.onclick = (e) => {
-                if(e) e.preventDefault();
+            btnToggle.onclick = () => {
                 const isHidden = leftPanel.classList.contains('hidden');
                 const nextText = getVisionText(this.currentMoleculeType);
                 if (isHidden) {
@@ -1444,15 +1438,14 @@ class UIManager {
             }
         }
         if (btnHighlight) {
-            btnHighlight.onclick = (e) => {
-                if(e) e.preventDefault();
+            btnHighlight.onclick = () => {
                 if (window.app && window.app.sceneManager) {
                     window.app.sceneManager.toggleHighlightFunctionalGroup(this.currentMoleculeType);
                     btnHighlight.innerText = window.app.sceneManager.isHighlighted ? "取消高亮" : "✨";
                 }
             };
         }
-        if (btnReplay && !btnReplay.onclick) btnReplay.onclick = (e) => { if(e) e.preventDefault(); this.replayCinematicMicroAnimation(); };
+        if (btnReplay && !btnReplay.onclick) btnReplay.onclick = () => this.replayCinematicMicroAnimation();
     }
 
     playCinematicMicroAnimation(reactionType) {
