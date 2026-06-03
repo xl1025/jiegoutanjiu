@@ -1,9 +1,18 @@
 /** 互动 UI 管理器 (UIManager.js) 
- * 🌟 终极综合稳定版：
- * 1. 【框选功能增强】在手形工具(🖐️)的复制/删除旁注入了【选出官能团】功能，采用底层原子数据强行劫持，确保100%精准选中。
- * 2. 【综合考核修复】测试题采用独立无遮挡图层，强制最高层级，闪电秒出，绝不卡死。
- * 3. 【终极报告修复】成绩单雷达图采用全新的独立动态 ID (radarChart-dynamic)，完美解决无法渲染与证书无法下载的 Bug。
+ * 🌟 GitHub Pages 部署终极防御版：
+ * 1. 彻底解决线上部署后，综合测试模块弹窗位置不正确、偏离中心的问题！引入纯内联最高权重 Flex 布局隔离，防断裂、防错乱。
+ * 2. 完美保留所有前置修复：原生点击事件恢复（撤销/清空修复）、单屏图鉴、雷达图防冲突、分词成就证书、✨官能团劫持选中。
  */
+
+const UI_THEME = {
+    primary: '#00ffcc',
+    warning: '#ffaa00',
+    danger: '#ff4444',
+    bgDark: 'rgba(20, 20, 30, 0.95)',
+    borderNormal: '#888',
+    textMain: '#ffffff'
+};
+
 class UIManager {
     constructor() {
         this.userStats = { 
@@ -22,13 +31,16 @@ class UIManager {
         this.dualRenderers = null; 
         this.builtOrder = []; 
         this.snapshots = {}; 
+        
         this.selectedLinearVal = null;
         this.selectedLinearText = null;
         this.draggedVal = null;
         this.activeDragElement = null;
+        
         this.ethaneComponentRef = null; 
         this.pendingChallengeType = null; 
         this.currentRank = null; 
+        this._lastUndoTime = 0; 
         
         this.finalQuizState = { questions: [], currentIndex: 0, correctCount: 0 };
         this.initQuestionBank();
@@ -42,96 +54,7 @@ class UIManager {
         this.initPanelStructures(); 
         this.bindEvents();
 
-        // 🌟 官能团选择器自动注入器：持续监测框选工具栏，若存在【复制】或【删除】按钮，则自动附加【选出官能团】按钮
-        setInterval(() => {
-            const copyBtn = document.getElementById('btn-marquee-copy');
-            if (copyBtn && copyBtn.parentElement && !document.getElementById('btn-marquee-func')) {
-                const funcBtn = document.createElement('button');
-                funcBtn.id = 'btn-marquee-func';
-                funcBtn.className = copyBtn.className;
-                if (!funcBtn.className.includes('magic-btn')) funcBtn.classList.add('magic-btn');
-                
-                funcBtn.innerHTML = '✨ 选出官能团';
-                funcBtn.title = '智能识别并选中框内的核心官能团';
-                
-                // 继承基础样式并注入高亮金色外观
-                funcBtn.style.padding = copyBtn.style.padding || '8px 15px';
-                funcBtn.style.fontSize = copyBtn.style.fontSize || '1.2em';
-                funcBtn.style.margin = '0 5px';
-                funcBtn.style.background = 'rgba(255, 170, 0, 0.15)'; 
-                funcBtn.style.borderRadius = copyBtn.style.borderRadius || '8px';
-                funcBtn.style.cursor = 'pointer';
-                funcBtn.style.border = '2px solid #ffaa00';
-                funcBtn.style.color = '#ffaa00';
-                funcBtn.style.textShadow = '0 0 8px rgba(255,170,0,0.5)';
-                funcBtn.style.transition = 'all 0.2s';
-                
-                funcBtn.onmouseenter = () => { funcBtn.style.transform = 'scale(1.05)'; funcBtn.style.boxShadow = '0 0 15px rgba(255,170,0,0.4)'; };
-                funcBtn.onmouseleave = () => { funcBtn.style.transform = 'scale(1)'; funcBtn.style.boxShadow = 'none'; };
-
-                // 🌟 核心修复：绑定底层级别的点击事件，无视外部事件拦截，100%选中官能团！
-                const self = this;
-                funcBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation(); // 阻止弹窗被小手取消
-                    
-                    const app = window.app;
-                    if (!app || !app.sceneManager) return;
-                    
-                    const sm = app.sceneManager;
-                    const im = app.interactionManager;
-                    
-                    // 1. 底层逻辑寻找官能团原子：定位 Oxygen 及其相连的 Hydrogen
-                    let targetAtoms = [];
-                    if (sm.atoms) {
-                        const oxygens = sm.atoms.filter(a => a.userData && a.userData.type === 'O');
-                        oxygens.forEach(o => {
-                            if (!targetAtoms.includes(o)) targetAtoms.push(o);
-                            if (sm.bonds) {
-                                sm.bonds.forEach(b => {
-                                    if (b.a === o && b.b.userData && b.b.userData.type === 'H') {
-                                        if (!targetAtoms.includes(b.b)) targetAtoms.push(b.b);
-                                    }
-                                    if (b.b === o && b.a.userData && b.a.userData.type === 'H') {
-                                        if (!targetAtoms.includes(b.a)) targetAtoms.push(b.a);
-                                    }
-                                });
-                            }
-                        });
-                    }
-
-                    if (targetAtoms.length === 0) {
-                        if (self.showMagicNotice) self.showMagicNotice("提示", "当前模型中未检测到含氧官能团！");
-                        return;
-                    }
-
-                    // 2. 强行覆盖底层引擎的“选中列表”，完美对接原有的复制/删除功能
-                    if (im) im.selectedAtoms = [...targetAtoms];
-                    if (sm) sm.selectedAtoms = [...targetAtoms];
-
-                    // 3. 视觉反馈：重置所有原子的发光状态，仅高亮官能团
-                    if (sm.atoms) {
-                        sm.atoms.forEach(a => {
-                            if (a.material && a.material.emissive) {
-                                if (targetAtoms.includes(a)) {
-                                    a.material.emissive.setHex(0x555555); 
-                                } else {
-                                    a.material.emissive.setHex(0x000000); 
-                                }
-                            }
-                        });
-                    }
-
-                    // 4. 触发小手底层的框选包围盒(BoundingBox)更新逻辑
-                    if (im && typeof im.updateSelectionBox === 'function') im.updateSelectionBox();
-                    if (im && typeof im.updateMarqueeMenuPosition === 'function') im.updateMarqueeMenuPosition();
-                    
-                    if (self.showMagicNotice) self.showMagicNotice("✨ 官能团已选定", "含氧核心结构已智能选中！现在可直接点击【复制】或【删除】。");
-                });
-
-                copyBtn.parentElement.insertBefore(funcBtn, copyBtn.nextSibling);
-            }
-        }, 800);
+        this.initObserver();
         
         setTimeout(() => {
             this.switchModule(this.currentLevel); 
@@ -139,6 +62,97 @@ class UIManager {
                 this.showMagicNotice("进度已恢复", "系统已自动为您恢复到上一次的实验进度！");
             }
         }, 500);
+    }
+
+    initObserver() {
+        if (this.observer) return;
+        this.observer = new MutationObserver((mutations) => {
+            const copyBtn = document.getElementById('btn-marquee-copy');
+            if (copyBtn && copyBtn.parentElement && !document.getElementById('btn-marquee-func')) {
+                this.injectFunctionalGroupButton(copyBtn);
+            }
+        });
+        this.observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    injectFunctionalGroupButton(copyBtn) {
+        const funcBtn = document.createElement('button');
+        funcBtn.id = 'btn-marquee-func';
+        funcBtn.className = copyBtn.className;
+        if (!funcBtn.className.includes('magic-btn')) funcBtn.classList.add('magic-btn');
+        
+        funcBtn.innerHTML = '✨ 选出官能团';
+        funcBtn.title = '智能识别并选中框内的核心官能团';
+        
+        funcBtn.style.padding = copyBtn.style.padding || '8px 15px';
+        funcBtn.style.fontSize = copyBtn.style.fontSize || '1.2em';
+        funcBtn.style.margin = '0 5px';
+        funcBtn.style.background = 'rgba(255, 170, 0, 0.15)'; 
+        funcBtn.style.borderRadius = copyBtn.style.borderRadius || '8px';
+        funcBtn.style.cursor = 'pointer';
+        funcBtn.style.border = `2px solid ${UI_THEME.warning}`;
+        funcBtn.style.color = UI_THEME.warning;
+        funcBtn.style.textShadow = '0 0 8px rgba(255,170,0,0.5)';
+        funcBtn.style.transition = 'all 0.2s';
+        
+        funcBtn.onmouseenter = () => { funcBtn.style.transform = 'scale(1.05)'; funcBtn.style.boxShadow = '0 0 15px rgba(255,170,0,0.4)'; };
+        funcBtn.onmouseleave = () => { funcBtn.style.transform = 'scale(1)'; funcBtn.style.boxShadow = 'none'; };
+
+        const self = this;
+        funcBtn.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation(); 
+            
+            const app = window.app;
+            if (!app || !app.sceneManager) return;
+            
+            const sm = app.sceneManager;
+            const im = app.interactionManager;
+            
+            let targetAtoms = [];
+            if (sm.atoms) {
+                const oxygens = sm.atoms.filter(a => a.userData && a.userData.type === 'O');
+                oxygens.forEach(o => {
+                    if (!targetAtoms.includes(o)) targetAtoms.push(o);
+                    if (sm.bonds) {
+                        sm.bonds.forEach(b => {
+                            if (b.a === o && b.b.userData && b.b.userData.type === 'H') {
+                                if (!targetAtoms.includes(b.b)) targetAtoms.push(b.b);
+                            }
+                            if (b.b === o && b.a.userData && b.a.userData.type === 'H') {
+                                if (!targetAtoms.includes(b.a)) targetAtoms.push(b.a);
+                            }
+                        });
+                    }
+                });
+            }
+
+            if (targetAtoms.length === 0) {
+                if (self.showMagicNotice) self.showMagicNotice("提示", "当前模型中未检测到含氧官能团！");
+                return;
+            }
+
+            if (im) im.selectedAtoms = [...targetAtoms];
+            if (sm) sm.selectedAtoms = [...targetAtoms];
+
+            if (sm.atoms) {
+                sm.atoms.forEach(a => {
+                    if (a.material && a.material.emissive) {
+                        if (targetAtoms.includes(a)) {
+                            a.material.emissive.setHex(0x555555); 
+                        } else {
+                            a.material.emissive.setHex(0x000000); 
+                        }
+                    }
+                });
+            }
+
+            if (im && typeof im.updateSelectionBox === 'function') im.updateSelectionBox();
+            if (im && typeof im.updateMarqueeMenuPosition === 'function') im.updateMarqueeMenuPosition();
+            
+            if (self.showMagicNotice) self.showMagicNotice("✨ 官能团已选定", "含氧核心结构已智能选中！现在可直接点击【复制】或【删除】。");
+        });
+
+        copyBtn.parentElement.insertBefore(funcBtn, copyBtn.nextSibling);
     }
 
     getBaseOverlayClass() {
@@ -213,17 +227,17 @@ class UIManager {
             .eq-slot {
                 display: inline-flex; justify-content: center; align-items: center;
                 min-width: 40px; height: 45px; border: 2px dashed #888; border-radius: 8px; 
-                background: rgba(0,0,0,0.6); color: #00ffcc; font-weight: bold; font-size: 0.9em; 
+                background: rgba(0,0,0,0.6); color: ${UI_THEME.primary}; font-weight: bold; font-size: 0.9em; 
                 cursor: pointer; vertical-align: middle; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
                 padding: 0 10px; margin: 0 5px; transition: all 0.2s;
             }
-            .eq-slot[data-filled] { border: 2px solid #00ffcc; background: rgba(0,255,204,0.1); }
+            .eq-slot[data-filled] { border: 2px solid ${UI_THEME.primary}; background: rgba(0,255,204,0.1); }
             
             .showcase-item { transition: transform 0.3s; }
             .showcase-item:hover { transform: translateY(-10px) scale(1.05); }
             
             .help-module-title {
-                color: var(--rpg-gold, #ffaa00); font-size: 2.2em; margin-top: 30px; margin-bottom: 15px; 
+                color: ${UI_THEME.warning}; font-size: 2.2em; margin-top: 30px; margin-bottom: 15px; 
                 border-bottom: 2px solid #444; padding-bottom: 10px; font-weight: bold; text-shadow: 1px 1px 3px #000;
             }
             .help-step { font-size: 1.6em; line-height: 1.8; margin-bottom: 12px; color: #eee; }
@@ -253,7 +267,7 @@ class UIManager {
         targetBtns.forEach(btn => {
             if (btn && typeof gsap !== 'undefined') {
                 gsap.killTweensOf(btn); btn.style.boxShadow = "none"; btn.style.transform = "scale(1)";
-                let glowColor = (text.includes('警告') || text.includes('错误') || text.includes('❌')) ? "#ff4444" : ((text.includes('成功') || text.includes('完成') || text.includes('✅')) ? "#ffaa00" : "#00ffcc");
+                let glowColor = (text.includes('警告') || text.includes('错误') || text.includes('❌')) ? UI_THEME.danger : ((text.includes('成功') || text.includes('完成') || text.includes('✅')) ? UI_THEME.warning : UI_THEME.primary);
                 gsap.fromTo(btn, { boxShadow: `0 0 0px ${glowColor}`, scale: 1 }, { boxShadow: `0 0 25px ${glowColor}`, scale: 1.15, duration: 0.6, yoyo: true, repeat: 7, ease: "power1.inOut" });
             }
         });
@@ -266,64 +280,65 @@ class UIManager {
         overlay = document.createElement('div');
         overlay.id = 'help-instructions-overlay';
         overlay.className = this.baseOverlayClass;
-        overlay.style.cssText = 'animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
+        // 🌟 防御代码：绝对全屏 Flex 居中，隔离一切 GitHub Pages CSS 异常
+        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 9999999 !important; animation: none !important; transition: none !important; opacity: 1 !important; pointer-events: auto !important;';
 
         const mod1HTML = `
             <div class="help-module-title">🧩 模块一：结构探秘</div>
-            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
-                <span style="color:#00ffcc; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
+            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.primary}; margin-bottom: 15px;">
+                <span style="color:${UI_THEME.primary}; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. 拼装出“乙醇”与“二甲醚”两种分子结构。</div>
                 <div style="margin-left: 10px;">2. 完成看图鉴定挑战。</div>
             </div>
-            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
-                <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
-                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【C、H、O 按钮】</span> 点击后在空白处生成对应的原子。</div>
-                <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【🖐️ 手形工具】</span> 拖拽空白处平移视角；拖拽框选分子可复制、删除或选出官能团。</div>
-                <div style="margin-left: 10px;">3. <span style="color:#ffaa00;">【🎯 靶子按钮】</span> 拼装出两种结构后出现，点击进入挑战测试。</div>
+            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.warning}; margin-bottom: 20px;">
+                <span style="color:${UI_THEME.warning}; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
+                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:${UI_THEME.warning};">【C、H、O 按钮】</span> 点击后在空白处生成对应的原子。</div>
+                <div style="margin-left: 10px;">2. <span style="color:${UI_THEME.warning};">【🖐️ 手形工具】</span> 拖拽空白处平移视角；拖拽框选分子可复制、删除或选出官能团。</div>
+                <div style="margin-left: 10px;">3. <span style="color:${UI_THEME.warning};">【🎯 靶子按钮】</span> 拼装出两种结构后出现，点击进入挑战测试。</div>
             </div>
         `;
 
         const mod2HTML = `
             <div class="help-module-title">💥 模块二：置换反应</div>
-            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
-                <span style="color:#00ffcc; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
+            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.primary}; margin-bottom: 15px;">
+                <span style="color:${UI_THEME.primary}; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. 模拟乙醇与钠的反应，生成乙醇钠和氢气。</div>
                 <div style="margin-left: 10px;">2. 完成方程式配平。</div>
             </div>
-            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
-                <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
-                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【Na 按钮】</span> 点击投入金属钠原子。</div>
-                <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【切断化学键】</span> 点击切断发红光的 O-H 键，再将 Na 拖至 O 附近置换。</div>
-                <div style="margin-left: 10px;">3. <span style="color:#ffaa00;">【⬚ 框选工具】</span> 选中所有物质复制后，将两个游离的 H 结合成氢气。</div>
+            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.warning}; margin-bottom: 20px;">
+                <span style="color:${UI_THEME.warning}; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
+                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:${UI_THEME.warning};">【Na 按钮】</span> 点击投入金属钠原子。</div>
+                <div style="margin-left: 10px;">2. <span style="color:${UI_THEME.warning};">【切断化学键】</span> 点击切断发红光的 O-H 键，再将 Na 拖至 O 附近置换。</div>
+                <div style="margin-left: 10px;">3. <span style="color:${UI_THEME.warning};">【⬚ 框选工具】</span> 选中所有物质复制后，将两个游离的 H 结合成氢气。</div>
             </div>
         `;
 
         const mod3HTML = `
             <div class="help-module-title">🔥 模块三：催化氧化</div>
-            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
-                <span style="color:#00ffcc; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
+            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.primary}; margin-bottom: 15px;">
+                <span style="color:${UI_THEME.primary}; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. 模拟乙醇的催化氧化反应，生成乙醛和水。</div>
                 <div style="margin-left: 10px;">2. 完成方程式填写。</div>
             </div>
-            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
-                <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
-                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【Cu 按钮】</span> 点击加入氧化铜催化剂，将其拖至 O 原子附近。</div>
-                <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【断键与成键】</span> 切断 O-H 键、α碳上的 C-H 键及 Cu-O 键；点击 C 和 O 生成双键。</div>
-                <div style="margin-left: 10px;">3. <span style="color:#ffaa00;">【组装水分子】</span> 拖拽游离的两个 H 和一个 O 组装生成水。</div>
+            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.warning}; margin-bottom: 20px;">
+                <span style="color:${UI_THEME.warning}; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
+                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:${UI_THEME.warning};">【Cu 按钮】</span> 点击加入氧化铜催化剂，将其拖至 O 原子附近。</div>
+                <div style="margin-left: 10px;">2. <span style="color:${UI_THEME.warning};">【断键与成键】</span> 切断 O-H 键、α碳上的 C-H 键及 Cu-O 键；点击 C 和 O 生成双键。</div>
+                <div style="margin-left: 10px;">3. <span style="color:${UI_THEME.warning};">【组装水分子】</span> 拖拽游离的两个 H 和一个 O 组装生成水。</div>
             </div>
         `;
 
         const mod4HTML = `
             <div class="help-module-title">🏆 模块四：综合评测</div>
-            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
-                <span style="color:#00ffcc; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
+            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.primary}; margin-bottom: 15px;">
+                <span style="color:${UI_THEME.primary}; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. 回顾全息殿堂中的实验产物。</div>
                 <div style="margin-left: 10px;">2. 完成 5 道随机大考测试题，获取高定证书。</div>
             </div>
-            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
-                <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
-                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【📝 开始考核】</span> 点击殿堂下方按钮进入答题。</div>
-                <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【查看错题 / 证书】</span> 考核结束后查看雷达图或保存成果。</div>
+            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.warning}; margin-bottom: 20px;">
+                <span style="color:${UI_THEME.warning}; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
+                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:${UI_THEME.warning};">【📝 开始考核】</span> 点击殿堂下方按钮进入答题。</div>
+                <div style="margin-left: 10px;">2. <span style="color:${UI_THEME.warning};">【查看错题 / 证书】</span> 考核结束后查看雷达图或保存成果。</div>
             </div>
         `;
 
@@ -338,10 +353,11 @@ class UIManager {
             else if (this.currentLevel === 4) helpContentHTML = mod4HTML;
         }
         
+        // 🌟 防御代码：内层剥离相对/绝对变换，纯 Block/Flex 控制尺寸
         overlay.innerHTML = `
-            <div class="challenge-modal magic-scroll" style="width: 100%; height: 100%; overflow-y: auto; position: relative; padding: 40px 50px; box-sizing: border-box; background: rgba(20,20,30,0.98); color: #fff; animation: none !important; transition: none !important;">
+            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; padding: 40px 50px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.98) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; color: #fff; animation: none !important; transition: none !important;">
                 <button id="btn-close-help" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10;">❌</button>
-                <h2 style="color: var(--rpg-mana, #00ffcc); font-size: 3.5em; text-align: center; margin-bottom: 20px; text-shadow: 0 0 15px rgba(0,255,204,0.5); font-family: 'Heiti', sans-serif;">📜 ${this.userStats.finalCompleted ? '全阶段操作指南' : '本阶段操作指南'}</h2>
+                <h2 style="color: ${UI_THEME.primary}; font-size: 3.5em; text-align: center; margin-bottom: 20px; text-shadow: 0 0 15px rgba(0,255,204,0.5); font-family: 'Heiti', sans-serif;">📜 ${this.userStats.finalCompleted ? '全阶段操作指南' : '本阶段操作指南'}</h2>
                 ${helpContentHTML}
                 <div style="text-align: center; margin-top: 40px;">
                     <button id="btn-close-help-bottom" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: #fff; color: #fff; font-family: 'Heiti', sans-serif;">我明白了</button>
@@ -590,24 +606,25 @@ class UIManager {
         gallery = document.createElement('div');
         gallery.id = 'final-gallery-overlay'; 
         gallery.className = this.baseOverlayClass; 
-        gallery.style.cssText = 'animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
+        // 🌟 防御代码：绝对全屏 Flex 居中，隔离一切 GitHub Pages CSS 异常
+        gallery.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 9999999 !important; animation: none !important; transition: none !important; opacity: 1 !important; pointer-events: auto !important;';
         
         gallery.innerHTML = `
-            <div class="challenge-modal" style="width: 100%; height: 100%; overflow-y: auto; text-align: center; position: relative; padding: 40px; box-sizing: border-box; animation: none !important; transition: none !important;">
+            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; text-align: center; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; padding: 40px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.98) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; animation: none !important; transition: none !important;">
                 <button id="btn-close-final-showcase" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 100000;">❌</button>
                 <div style="text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: min-content;">
                     <h2 style="color: var(--rpg-gold); font-size: 3.5em; margin-bottom: 40px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); letter-spacing: 5px; font-family: 'Heiti', sans-serif;">🏛️ 炼金成果殿堂</h2>
                     <div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-bottom: 20px; width: 90%; max-width: 1200px;">
-                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #00ffcc; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0,255,204,0.3);">
-                            <h3 style="color: #00ffcc; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #00ffcc; font-family: 'Heiti', sans-serif;">基础分子 (乙醇)</h3>
+                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid ${UI_THEME.primary}; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0,255,204,0.3);">
+                            <h3 style="color: ${UI_THEME.primary}; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px ${UI_THEME.primary}; font-family: 'Heiti', sans-serif;">基础分子 (乙醇)</h3>
                             <div id="showcase-ethanol" style="width: 260px; height: 260px;"></div>
                         </div>
-                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #ffaa00; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(255,170,0,0.3);">
-                            <h3 style="color: #ffaa00; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #ffaa00; font-family: 'Heiti', sans-serif;">置换产物 (乙醇钠)</h3>
+                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid ${UI_THEME.warning}; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(255,170,0,0.3);">
+                            <h3 style="color: ${UI_THEME.warning}; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px ${UI_THEME.warning}; font-family: 'Heiti', sans-serif;">置换产物 (乙醇钠)</h3>
                             <div id="showcase-na" style="width: 260px; height: 260px;"></div>
                         </div>
-                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #ff4444; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(255,68,68,0.3);">
-                            <h3 style="color: #ff4444; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #ff4444; font-family: 'Heiti', sans-serif;">氧化产物 (乙醛)</h3>
+                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid ${UI_THEME.danger}; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(255,68,68,0.3);">
+                            <h3 style="color: ${UI_THEME.danger}; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px ${UI_THEME.danger}; font-family: 'Heiti', sans-serif;">氧化产物 (乙醛)</h3>
                             <div id="showcase-cu" style="width: 260px; height: 260px;"></div>
                         </div>
                     </div>
@@ -655,10 +672,11 @@ class UIManager {
         overlay.id = 'final-quiz-dynamic-overlay';
         overlay.className = this.baseOverlayClass; 
         
-        overlay.style.cssText = 'animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
+        // 🌟 防御代码：绝对全屏 Flex 居中，隔离一切 GitHub Pages CSS 异常
+        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 9999999 !important; animation: none !important; transition: none !important; opacity: 1 !important; pointer-events: auto !important;';
         
         overlay.innerHTML = `
-            <div class="challenge-modal magic-scroll" style="width: 100%; height: 100%; overflow-y: auto; position: relative; box-sizing: border-box; background: rgba(20,20,30,0.98); z-index: 9999999; animation: none !important; transition: none !important;">
+            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; box-sizing: border-box !important; background: rgba(20,20,30,0.98) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; z-index: 9999999; animation: none !important; transition: none !important;">
                 <div id="dynamic-quiz-content" style="width: 100%; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; box-sizing: border-box; animation: none !important;"></div>
             </div>
         `;
@@ -677,11 +695,11 @@ class UIManager {
         let html = `
             <div style="display: flex; flex-direction: column; align-items: center; text-align: left; padding: 20px 30px; box-sizing: border-box; width: 100%; max-width: 100%; animation: none !important;">
                 
-                <h3 style="display: block !important; width: 100%; color: #00ffcc !important; font-size: 3.5em !important; font-family: 'Heiti', 'SimHei', sans-serif; margin-bottom: 30px; text-shadow: 0 0 12px rgba(0,255,204,0.6); text-align: center; opacity: 1 !important; visibility: visible !important; flex-shrink: 0; min-height: max-content; line-height: 1.5; z-index: 10; position: relative;">
+                <h3 style="display: block !important; width: 100%; color: ${UI_THEME.primary} !important; font-size: 3.5em !important; font-family: 'Heiti', 'SimHei', sans-serif; margin-bottom: 30px; text-shadow: 0 0 12px rgba(0,255,204,0.6); text-align: center; opacity: 1 !important; visibility: visible !important; flex-shrink: 0; min-height: max-content; line-height: 1.5; z-index: 10; position: relative;">
                     最终考核 (${this.finalQuizState.currentIndex + 1}/5)
                 </h3>
                 
-                <div style="background: rgba(20, 25, 35, 0.95); border: 2px solid #00ffcc; border-radius: 16px; padding: 40px 50px; box-shadow: 0 0 30px rgba(0,255,204,0.2); width: 100%; max-width: 1200px; box-sizing: border-box; position: relative; z-index: 20;">
+                <div style="background: rgba(20, 25, 35, 0.95); border: 2px solid ${UI_THEME.primary}; border-radius: 16px; padding: 40px 50px; box-shadow: 0 0 30px rgba(0,255,204,0.2); width: 100%; max-width: 1200px; box-sizing: border-box; position: relative; z-index: 20;">
                     <div style="font-size: 2.8em; font-family: 'Songti', 'SimSun', serif; color: #fff; margin-bottom: 40px; line-height: 1.8; word-break: break-word; overflow-wrap: break-word; white-space: normal;">
                         ${q.question}
                     </div>
@@ -701,7 +719,7 @@ class UIManager {
 
         const btns = container.querySelectorAll('.quiz-opt-btn');
         btns.forEach(btn => {
-            btn.onmouseenter = () => { btn.style.borderColor = '#00ffcc'; btn.style.background = 'rgba(0,255,204,0.15)'; btn.style.transform = 'translateX(10px)'; btn.style.boxShadow = '0 0 15px rgba(0,255,204,0.4)'; };
+            btn.onmouseenter = () => { btn.style.borderColor = UI_THEME.primary; btn.style.background = 'rgba(0,255,204,0.15)'; btn.style.transform = 'translateX(10px)'; btn.style.boxShadow = '0 0 15px rgba(0,255,204,0.4)'; };
             btn.onmouseleave = () => { btn.style.borderColor = '#555'; btn.style.background = 'rgba(0,0,0,0.6)'; btn.style.transform = 'translateX(0)'; btn.style.boxShadow = 'none'; };
             btn.onclick = () => {
                 const selectedIdx = parseInt(btn.getAttribute('data-idx'));
@@ -720,11 +738,11 @@ class UIManager {
         } else {
             this.userStats.wrongQuestions.push({
                 module: 4, 
-                explanation: `<strong>题目：</strong>${q.question}<br><span style="color:#00ffcc;">正确答案：${q.options[q.correctIdx]}</span><br><span style="color:#aaa;">解析：${q.explanation}</span>`
+                explanation: `<strong>题目：</strong>${q.question}<br><span style="color:${UI_THEME.primary};">正确答案：${q.options[q.correctIdx]}</span><br><span style="color:#aaa;">解析：${q.explanation}</span>`
             });
         }
 
-        const resultColor = isCorrect ? "#00ffcc" : "#ff4444";
+        const resultColor = isCorrect ? UI_THEME.primary : UI_THEME.danger;
         const resultTitle = isCorrect ? "回答正确！" : "回答错误...";
         
         container.innerHTML = `
@@ -737,7 +755,7 @@ class UIManager {
                 <div style="background: rgba(20, 25, 35, 0.95); border: 2px solid ${resultColor}; border-radius: 16px; padding: 40px 50px; box-shadow: 0 0 30px rgba(${isCorrect ? '0,255,204' : '255,68,68'}, 0.25); width: 100%; max-width: 1200px; box-sizing: border-box; position: relative; z-index: 20;">
                     
                     <div style="font-size: 2.8em; font-family: 'Songti', 'SimSun', serif; line-height: 1.8; color: #fff; word-break: break-word; overflow-wrap: break-word; white-space: normal;">
-                        ${isCorrect ? `<span style="color:#00ffcc; font-weight:bold; font-family: 'Heiti', sans-serif;">太棒了！</span><br><br>` : `<span style="color:#ff4444; text-decoration:line-through;">你选择了：${q.options[selectedIdx]}</span><br><span style="color:#00ffcc; font-weight:bold; font-family: 'Heiti', sans-serif;">正确答案：${q.options[q.correctIdx]}</span><br><br>`}
+                        ${isCorrect ? `<span style="color:${UI_THEME.primary}; font-weight:bold; font-family: 'Heiti', sans-serif;">太棒了！</span><br><br>` : `<span style="color:${UI_THEME.danger}; text-decoration:line-through;">你选择了：${q.options[selectedIdx]}</span><br><span style="color:${UI_THEME.primary}; font-weight:bold; font-family: 'Heiti', sans-serif;">正确答案：${q.options[q.correctIdx]}</span><br><br>`}
                         ${q.explanation}
                     </div>
                     
@@ -785,7 +803,8 @@ class UIManager {
         overlay = document.createElement('div');
         overlay.id = 'equation-minigame-overlay';
         overlay.className = this.baseOverlayClass;
-        overlay.style.cssText = 'animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
+        // 🌟 防御代码：绝对全屏 Flex 居中，隔离一切 GitHub Pages CSS 异常
+        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 9999999 !important; animation: none !important; transition: none !important; opacity: 1 !important; pointer-events: auto !important;';
         
         let contentHTML = '';
 
@@ -846,8 +865,9 @@ class UIManager {
             `;
         }
 
+        // 🌟 防御代码：内层剥离相对/绝对变换，纯 Block/Flex 控制尺寸
         overlay.innerHTML = `
-            <div class="challenge-modal" style="text-align: center; width: 100%; height: 100%; overflow-y: auto; position: relative; padding: 30px 40px; box-sizing: border-box; background: rgba(20,20,30,0.95); border: 2px solid #00ffcc; border-radius: 12px; box-shadow: 0 0 30px rgba(0,255,204,0.3); animation: none !important; transition: none !important;">
+            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; padding: 30px 40px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.95) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 0 30px rgba(0,255,204,0.3) !important; text-align: center; animation: none !important; transition: none !important;">
                 ${contentHTML}
             </div>
         `;
@@ -910,11 +930,14 @@ class UIManager {
         });
     }
 
-    initEquationDragDrop() {
-        const dragItems = document.querySelectorAll('.eq-drag');
-        const dropZones = document.querySelectorAll('.eq-slot');
+    bindCommonDragDrop(dragSelector, dropSelector) {
+        const dragItems = document.querySelectorAll(dragSelector);
+        const dropZones = document.querySelectorAll(dropSelector);
 
         dragItems.forEach(item => {
+            if (item.dataset.bound) return;
+            item.dataset.bound = 'true';
+            
             item.addEventListener('dragstart', (e) => {
                 this.draggedVal = item.getAttribute('data-val');
                 this.activeDragElement = item;
@@ -926,36 +949,83 @@ class UIManager {
             });
             item.addEventListener('pointerdown', () => {
                 dragItems.forEach(i => i.style.borderColor = '#aaa');
-                item.style.borderColor = '#00ffcc';
+                item.style.borderColor = UI_THEME.primary;
                 this.selectedLinearVal = item.getAttribute('data-val');
                 this.selectedLinearText = item.innerHTML;
             });
         });
 
         dropZones.forEach(zone => {
-            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.style.borderColor = '#00ffcc'; });
-            zone.addEventListener('dragleave', () => { if(!zone.getAttribute('data-filled')) zone.style.borderColor = '#888'; });
+            if (zone.dataset.bound) return;
+            zone.dataset.bound = 'true';
+
+            zone.addEventListener('dragover', (e) => { 
+                e.preventDefault(); 
+                zone.style.borderColor = UI_THEME.primary; 
+                zone.style.background = 'rgba(0,255,204,0.2)';
+            });
+            zone.addEventListener('dragleave', () => { 
+                if(!zone.getAttribute('data-filled')) {
+                    zone.style.borderColor = UI_THEME.borderNormal; 
+                    zone.style.background = 'rgba(0,0,0,0.6)';
+                }
+            });
             zone.addEventListener('drop', (e) => {
                 e.preventDefault();
+                zone.style.background = 'rgba(0,0,0,0.6)';
                 if (this.draggedVal && this.activeDragElement) {
                     zone.setAttribute('data-filled', this.draggedVal);
                     zone.innerHTML = this.activeDragElement.innerHTML;
-                    zone.style.borderColor = '#00ffcc';
+                    zone.style.borderColor = UI_THEME.primary;
+                } else if (!zone.getAttribute('data-filled')) {
+                    zone.style.borderColor = UI_THEME.borderNormal;
                 }
             });
             zone.addEventListener('pointerdown', () => {
                 if (this.selectedLinearVal) {
                     zone.setAttribute('data-filled', this.selectedLinearVal);
                     zone.innerHTML = this.selectedLinearText;
-                    zone.style.borderColor = '#00ffcc';
+                    zone.style.borderColor = UI_THEME.primary;
                     dragItems.forEach(i => i.style.borderColor = '#aaa');
                     this.selectedLinearVal = null; 
                 } else if (zone.getAttribute('data-filled')) {
-                    zone.removeAttribute('data-filled'); zone.innerHTML = '';
-                    zone.style.borderColor = '#888'; zone.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.5)';
+                    zone.removeAttribute('data-filled'); 
+                    zone.innerHTML = '';
+                    zone.style.borderColor = UI_THEME.borderNormal; 
+                    zone.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.5)';
                 }
             });
         });
+    }
+
+    initEquationDragDrop() {
+        this.bindCommonDragDrop('.eq-drag', '.eq-slot');
+    }
+
+    initLinearStructureDragDrop() {
+        const dragItems = document.querySelectorAll('.linear-drag');
+        if (dragItems.length > 0 && dragItems[0].parentElement) {
+            const dragContainer = dragItems[0].parentElement;
+            
+            Array.from(dragContainer.children).forEach(child => {
+                if (child.tagName === 'SPAN' || child.classList.contains('drag-title')) child.remove();
+            });
+
+            dragContainer.style.position = 'absolute'; dragContainer.style.right = '20px';
+            dragContainer.style.top = '50%'; dragContainer.style.transform = 'translateY(-50%)';
+            dragContainer.style.display = 'flex'; dragContainer.style.flexDirection = 'column'; 
+            dragContainer.style.gap = '10px'; dragContainer.style.padding = '12px 10px'; 
+            dragContainer.style.background = UI_THEME.bgDark; dragContainer.style.border = `2px solid ${UI_THEME.primary}`;
+            dragContainer.style.borderRadius = '12px'; dragContainer.style.boxShadow = '0 0 20px rgba(0, 255, 204, 0.3)';
+            dragContainer.style.zIndex = '999'; dragContainer.style.alignItems = 'center';
+            dragContainer.style.minWidth = 'auto'; dragContainer.style.marginBottom = '0'; 
+
+            dragItems.forEach(item => { item.style.padding = '10px 15px'; item.style.fontSize = '1.6em'; });
+
+            const scrollContent = document.querySelector('.challenge-scroll-content');
+            if (scrollContent) scrollContent.style.paddingRight = '120px';
+        }
+        this.bindCommonDragDrop('.linear-drag', '.linear-slot');
     }
     
     updateLevelUI() {
@@ -1011,82 +1081,6 @@ class UIManager {
             box.addEventListener('dblclick', () => { state = { scale: 1, x: 0, y: 0 }; updateTransform(); });
 
             function updateTransform() { img.style.transform = `translate(${state.x}px, ${state.y}px) scale(${state.scale})`; }
-        });
-    }
-
-    initLinearStructureDragDrop() {
-        const dragItems = document.querySelectorAll('.linear-drag');
-        const dropZones = document.querySelectorAll('.linear-slot');
-        
-        if (dragItems.length > 0 && dragItems[0].parentElement) {
-            const dragContainer = dragItems[0].parentElement;
-            
-            Array.from(dragContainer.children).forEach(child => {
-                if (child.tagName === 'SPAN' || child.classList.contains('drag-title')) child.remove();
-            });
-
-            dragContainer.style.position = 'absolute'; dragContainer.style.right = '20px';
-            dragContainer.style.top = '50%'; dragContainer.style.transform = 'translateY(-50%)';
-            dragContainer.style.display = 'flex'; dragContainer.style.flexDirection = 'column'; 
-            dragContainer.style.gap = '10px'; dragContainer.style.padding = '12px 10px'; 
-            dragContainer.style.background = 'rgba(20, 20, 30, 0.95)'; dragContainer.style.border = '2px solid var(--rpg-mana, #00ffcc)';
-            dragContainer.style.borderRadius = '12px'; dragContainer.style.boxShadow = '0 0 20px rgba(0, 255, 204, 0.3)';
-            dragContainer.style.zIndex = '999'; dragContainer.style.alignItems = 'center';
-            dragContainer.style.minWidth = 'auto'; dragContainer.style.marginBottom = '0'; 
-
-            dragItems.forEach(item => { item.style.padding = '10px 15px'; item.style.fontSize = '1.6em'; });
-
-            const scrollContent = document.querySelector('.challenge-scroll-content');
-            if (scrollContent) scrollContent.style.paddingRight = '120px';
-        }
-
-        dragItems.forEach(item => {
-            if (item.dataset.bound) return;
-            item.dataset.bound = 'true';
-            
-            item.addEventListener('dragstart', (e) => {
-                this.draggedVal = item.getAttribute('data-val');
-                this.activeDragElement = item;
-                setTimeout(() => item.style.opacity = '0.5', 0);
-            });
-            item.addEventListener('dragend', () => {
-                if (this.activeDragElement) this.activeDragElement.style.opacity = '1';
-                this.draggedVal = null; this.activeDragElement = null;
-            });
-            
-            item.addEventListener('pointerdown', (e) => {
-                dragItems.forEach(i => i.style.borderColor = '#aaa');
-                item.style.borderColor = '#00ffcc';
-                this.selectedLinearVal = item.getAttribute('data-val');
-                this.selectedLinearText = item.innerHTML;
-            });
-        });
-
-        dropZones.forEach(zone => {
-            if (zone.dataset.bound) return;
-            zone.dataset.bound = 'true';
-
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault(); zone.style.borderColor = '#00ffcc'; zone.style.background = 'rgba(0,255,204,0.2)';
-            });
-            zone.addEventListener('dragleave', () => {
-                zone.style.borderColor = '#666'; zone.style.background = 'rgba(0,0,0,0.6)';
-            });
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault(); zone.style.borderColor = '#666'; zone.style.background = 'rgba(0,0,0,0.6)';
-                if (this.draggedVal && this.activeDragElement) {
-                    zone.setAttribute('data-filled', this.draggedVal); zone.innerHTML = this.activeDragElement.innerHTML;
-                }
-            });
-            
-            zone.addEventListener('pointerdown', (e) => {
-                if (this.selectedLinearVal) {
-                    zone.setAttribute('data-filled', this.selectedLinearVal); zone.innerHTML = this.selectedLinearText;
-                    dragItems.forEach(i => i.style.borderColor = '#aaa'); this.selectedLinearVal = null; 
-                } else if (zone.getAttribute('data-filled')) {
-                    zone.removeAttribute('data-filled'); zone.innerHTML = ''; zone.style.borderColor = '#666';
-                }
-            });
         });
     }
 
@@ -1174,12 +1168,37 @@ class UIManager {
 
             const app = window.app; if (!app) return;
 
+            if (id.startsWith('btn-') || target.classList.contains('nav-btn')) {
+                e.stopPropagation();
+            }
+
             if (id === 'btn-add-c') app.interactionManager?.selectElementToAdd('C');
             if (id === 'btn-add-h') app.interactionManager?.selectElementToAdd('H');
             if (id === 'btn-add-o') app.interactionManager?.selectElementToAdd('O');
             if (id === 'btn-select-hand') app.interactionManager?.selectElementToAdd('hand');
-            if (id === 'btn-undo') app.sceneManager?.undoLast();
-            if (id === 'btn-clear') app.sceneManager?.clearAll();
+            
+            if (id === 'btn-undo') {
+                if (this._lastUndoTime && Date.now() - this._lastUndoTime < 300) return; 
+                this._lastUndoTime = Date.now();
+
+                if (this.currentLevel === 1) {
+                    if (app.sceneManager && typeof app.sceneManager.undoLast === 'function') {
+                        app.sceneManager.undoLast();
+                    }
+                } else {
+                    this.showMagicNotice("提示", "反应阶段不可撤销固定原子的结构！若需重新实验请点击【🧪 重置交互】");
+                }
+            }
+            
+            if (id === 'btn-clear') {
+                if (this.currentLevel === 1) {
+                    if (app.sceneManager && typeof app.sceneManager.clearAll === 'function') {
+                        app.sceneManager.clearAll();
+                    }
+                } else {
+                    this.showMagicNotice("提示", "反应阶段不可清空场景！若需重新实验请点击【🧪 重置交互】");
+                }
+            }
 
             if (id === 'btn-marquee-copy') { if (app.sceneManager && typeof app.sceneManager.copySelected === 'function') app.sceneManager.copySelected(); }
             if (id === 'btn-marquee-delete') { if (app.sceneManager && typeof app.sceneManager.deleteSelected === 'function') app.sceneManager.deleteSelected(); }
@@ -1294,8 +1313,12 @@ class UIManager {
             btnHelp.id = 'btn-help-guide';
             btnHelp.className = firstNavBtn.className.replace('active', '').trim(); 
             btnHelp.innerHTML = '❓ 帮助'; btnHelp.title = '查看详细操作指南';
-            btnHelp.style.color = '#ffaa00'; btnHelp.style.borderColor = '#ffaa00';
+            btnHelp.style.color = UI_THEME.warning; btnHelp.style.borderColor = UI_THEME.warning;
             btnHelp.style.marginRight = '10px'; btnHelp.style.textShadow = '0 0 5px rgba(255, 170, 0, 0.5)';
+            
+            btnHelp.addEventListener('pointerdown', e => e.stopPropagation());
+            btnHelp.addEventListener('mousedown', e => e.stopPropagation());
+
             firstNavBtn.parentNode.insertBefore(btnHelp, firstNavBtn);
             btnHelp.addEventListener('click', () => { this.showHelpInstructions(); });
         }
@@ -1307,23 +1330,27 @@ class UIManager {
                 btn.id = id; btn.className = 'magic-btn'; btn.innerHTML = icon;
                 btn.style.borderColor = color; btn.style.color = color;
                 if(title) btn.title = title;
+
+                btn.addEventListener('pointerdown', e => e.stopPropagation());
+                btn.addEventListener('mousedown', e => e.stopPropagation());
+
                 return btn;
             };
 
-            systemMenu.appendChild(createBtn('btn-toggle-main-3d', '👁️', 'var(--rpg-mana)', '打开/关闭 3D 参考视图'));
-            systemMenu.appendChild(createBtn('btn-undo', '↩️', '#ffaa00', '撤销上一步操作'));
-            systemMenu.appendChild(createBtn('btn-clear', '🧹', '#ff4444', '清空重置场景'));
+            systemMenu.appendChild(createBtn('btn-toggle-main-3d', '👁️', UI_THEME.primary, '打开/关闭 3D 参考视图'));
+            systemMenu.appendChild(createBtn('btn-undo', '↩️', UI_THEME.warning, '撤销上一步操作'));
+            systemMenu.appendChild(createBtn('btn-clear', '🧹', UI_THEME.danger, '清空重置场景'));
             
-            const btnChallenge = createBtn('btn-toggle-challenge', '🎯', '#00ffcc', '开启挑战');
+            const btnChallenge = createBtn('btn-toggle-challenge', '🎯', UI_THEME.primary, '开启挑战');
             btnChallenge.classList.add('hidden'); systemMenu.appendChild(btnChallenge);
 
             const btnRetry = createBtn('btn-retry-interaction', '🧪', '#ff8800', '重置交互步骤');
             btnRetry.classList.add('hidden'); systemMenu.appendChild(btnRetry);
 
-            const btnQuiz = createBtn('btn-trigger-quiz', '👩‍💼', '#00ffcc', 'AI 随堂检测');
+            const btnQuiz = createBtn('btn-trigger-quiz', '👩‍💼', UI_THEME.primary, 'AI 随堂检测');
             btnQuiz.classList.add('hidden'); systemMenu.appendChild(btnQuiz);
             
-            const btnReset = createBtn('btn-reset-progress', '🗑️', '#ff4444', '清空本地存档并重头开始');
+            const btnReset = createBtn('btn-reset-progress', '🗑️', UI_THEME.danger, '清空本地存档并重头开始');
             systemMenu.appendChild(btnReset);
         }
     }
@@ -1506,7 +1533,7 @@ class UIManager {
         if (panel) {
             panel.classList.remove('hidden');
             document.getElementById('canvas-container')?.classList.add('canvas-shrunk');
-            document.getElementById('ai-content').innerHTML = `<p style="font-size: 1.8em; color: var(--rpg-mana); font-family: 'Heiti', sans-serif;">正在生成随堂测试题...</p>`;
+            document.getElementById('ai-content').innerHTML = `<p style="font-size: 1.8em; color: ${UI_THEME.primary}; font-family: 'Heiti', sans-serif;">正在生成随堂测试题...</p>`;
             document.getElementById('btn-close-ai')?.classList.remove('hidden');
         }
     }
@@ -1528,8 +1555,8 @@ class UIManager {
         const totalScore = score1 + score2 + score3 + score4 + score5; 
         
         let rank = 'C'; let rankColor = '#aaaaaa';
-        if (totalScore >= 450) { rank = 'S'; rankColor = '#ffaa00'; }
-        else if (totalScore >= 380) { rank = 'A'; rankColor = '#00ffcc'; }
+        if (totalScore >= 450) { rank = 'S'; rankColor = UI_THEME.warning; }
+        else if (totalScore >= 380) { rank = 'A'; rankColor = UI_THEME.primary; }
         else if (totalScore >= 300) { rank = 'B'; rankColor = '#4488ff'; }
 
         this.currentRank = { letter: rank, color: rankColor };
@@ -1540,20 +1567,21 @@ class UIManager {
         overlay = document.createElement('div');
         overlay.id = 'eval-dynamic-overlay';
         overlay.className = this.baseOverlayClass;
-        overlay.style.cssText = 'animation: none !important; transition: none !important; opacity: 1 !important; display: block !important; z-index: 9999999;';
+        // 🌟 防御代码：绝对全屏 Flex 居中，隔离一切 GitHub Pages CSS 异常
+        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 9999999 !important; animation: none !important; transition: none !important; opacity: 1 !important; pointer-events: auto !important;';
 
         overlay.innerHTML = `
-            <div class="challenge-modal magic-scroll" style="width: 100%; height: 100%; overflow-y: auto; position: relative; padding: 20px 40px; box-sizing: border-box; background: rgba(20,20,30,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; padding: 20px 40px !important; box-sizing: border-box !important; background: ${UI_THEME.bgDark} !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important;">
                 
                 <button id="btn-close-eval-dynamic" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10000; cursor: pointer;">❌</button>
                 
                 <h2 style="color: var(--rpg-gold, #ffaa00); font-size: 3.5em; margin-bottom: 10px; margin-top: 10px; text-shadow: 0 0 20px rgba(255,215,0,0.5); font-family: 'Heiti', sans-serif;">🏆 炼金宗师终极报告</h2>
-                <p style="color: #fff; font-size: 1.8em; margin-bottom: 30px; font-family: 'Songti', serif;">经过严密的综合分析，您的化学探索总分为 <strong style="color:#00ffcc; font-size:1.5em; font-family: 'Heiti', sans-serif;">${totalScore}</strong> 分！</p>
+                <p style="color: #fff; font-size: 1.8em; margin-bottom: 30px; font-family: 'Songti', serif;">经过严密的综合分析，您的化学探索总分为 <strong style="color:${UI_THEME.primary}; font-size:1.5em; font-family: 'Heiti', sans-serif;">${totalScore}</strong> 分！</p>
 
                 <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; gap: 80px; width: 100%; max-width: 1200px; margin-bottom: 40px;">
                     
                     <div style="text-align: center; background: rgba(0,0,0,0.6); padding: 40px 50px; border-radius: 20px; border: 2px solid ${rankColor}; box-shadow: 0 0 30px ${rankColor}; width: 350px; flex-shrink: 0;">
-                        <div style="font-size: 1.8em; color: #fff; margin-bottom: 15px; font-family: 'Heiti', sans-serif;">综合评分: <span style="color:var(--rpg-mana, #00ffcc); font-weight:bold; font-size: 1.5em;">${totalScore}</span> / 500</div>
+                        <div style="font-size: 1.8em; color: #fff; margin-bottom: 15px; font-family: 'Heiti', sans-serif;">综合评分: <span style="color:${UI_THEME.primary}; font-weight:bold; font-size: 1.5em;">${totalScore}</span> / 500</div>
                         <div style="font-size: 2em; color: #fff; margin-bottom: 10px; margin-top: 25px; font-family: 'Heiti', sans-serif;">最终评级</div>
                         <div style="font-size: 8em; font-weight: bold; font-style: italic; font-family: 'Courier New', monospace; color: ${rankColor}; text-shadow: 0 0 20px ${rankColor}; line-height: 1;">${rank}</div>
                     </div>
@@ -1564,9 +1592,9 @@ class UIManager {
                 </div>
 
                 <div style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;">
-                    <button id="btn-wrong-questions-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: #ff4444; color: #ff4444; box-shadow: 0 0 20px rgba(255, 68, 68, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">📝 查看错题解析</button>
-                    <button id="btn-download-eval-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: #ffaa00; color: #ffaa00; box-shadow: 0 0 20px rgba(255, 170, 0, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">⬇️ 下载成就证书</button>
-                    <button id="btn-return-home-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: #00ffcc; color: #00ffcc; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">🏠 重新开始探索</button>
+                    <button id="btn-wrong-questions-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: ${UI_THEME.danger}; color: ${UI_THEME.danger}; box-shadow: 0 0 20px rgba(255, 68, 68, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">📝 查看错题解析</button>
+                    <button id="btn-download-eval-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: ${UI_THEME.warning}; color: ${UI_THEME.warning}; box-shadow: 0 0 20px rgba(255, 170, 0, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">⬇️ 下载成就证书</button>
+                    <button id="btn-return-home-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: ${UI_THEME.primary}; color: ${UI_THEME.primary}; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">🏠 重新开始探索</button>
                 </div>
             </div>
         `;
@@ -1614,7 +1642,7 @@ class UIManager {
         window.magicRadarChart = new Chart(ctx, {
             type: 'radar',
             data: { labels: labels, datasets: [{ data: dataArray, backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#ffd700', borderWidth: 3, pointBackgroundColor: '#fff', pointBorderColor: '#ffd700', pointRadius: 5 }] },
-            options: { scales: { r: { angleLines: { color: 'rgba(255,255,255,0.4)' }, grid: { color: 'rgba(255,255,255,0.2)' }, pointLabels: { color: '#00ffcc', font: { size: 20, weight: 'bold' } }, ticks: { display: false, min: 0, max: 100 } } }, plugins: { legend: { display: false } } }
+            options: { scales: { r: { angleLines: { color: 'rgba(255,255,255,0.4)' }, grid: { color: 'rgba(255,255,255,0.2)' }, pointLabels: { color: UI_THEME.primary, font: { size: 20, weight: 'bold' } }, ticks: { display: false, min: 0, max: 100 } } }, plugins: { legend: { display: false } } }
         });
     }
 
@@ -1638,16 +1666,16 @@ class UIManager {
                 let plainText = wq.explanation.replace(/<[^>]+>/g, '').trim(); 
                 let fullStr = `Q${idx + 1}: ${plainText}`;
                 
-                let chars = fullStr.split('');
+                const tokens = fullStr.match(/[a-zA-Z0-9_.\-]+|[^a-zA-Z0-9_.\-]/g) || [];
                 let line = '';
                 let questionLines = [];
                 
-                for (let n = 0; n < chars.length; n++) {
-                    let testLine = line + chars[n];
+                for (let n = 0; n < tokens.length; n++) {
+                    let testLine = line + tokens[n];
                     let metrics = ctxMeasure.measureText(testLine);
-                    if (metrics.width > maxWidth && n > 0) {
+                    if (metrics.width > maxWidth && line.length > 0) {
                         questionLines.push(line);
-                        line = chars[n];
+                        line = tokens[n];
                     } else {
                         line = testLine;
                     }
@@ -1671,10 +1699,10 @@ class UIManager {
         grad.addColorStop(0, '#101420'); grad.addColorStop(1, '#080a10');
         ctx.fillStyle = grad; ctx.fillRect(0, 0, 800, totalHeight);
         
-        ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 6; ctx.strokeRect(20, 20, 760, totalHeight - 40);
+        ctx.strokeStyle = UI_THEME.primary; ctx.lineWidth = 6; ctx.strokeRect(20, 20, 760, totalHeight - 40);
         ctx.strokeStyle = 'rgba(0, 255, 204, 0.3)'; ctx.lineWidth = 2; ctx.strokeRect(30, 30, 740, totalHeight - 60);
         
-        ctx.fillStyle = '#00ffcc'; 
+        ctx.fillStyle = UI_THEME.primary; 
         ctx.font = 'bold 48px "Heiti", "SimHei", sans-serif'; 
         ctx.textAlign = 'center'; 
         ctx.shadowColor = 'rgba(0, 255, 204, 0.8)'; ctx.shadowBlur = 15;
@@ -1694,7 +1722,7 @@ class UIManager {
         
         ctx.textAlign = 'left';
         if (wrongQs.length > 0) {
-            ctx.fillStyle = '#ffaa00'; ctx.font = 'bold 30px "Heiti", "SimHei", sans-serif'; 
+            ctx.fillStyle = UI_THEME.warning; ctx.font = 'bold 30px "Heiti", "SimHei", sans-serif'; 
             ctx.fillText('【错题档案归纳】', 60, 820);
             
             ctx.fillStyle = '#dddddd'; ctx.font = '22px "Songti", "SimSun", serif'; 
@@ -1708,7 +1736,7 @@ class UIManager {
             ctx.textAlign = 'center'; ctx.fillStyle = '#aaaaaa'; ctx.font = '18px "Heiti", "SimHei", sans-serif'; 
             ctx.fillText(`生成时间: ${new Date().toLocaleString()}`, 400, totalHeight - 50);
         } else {
-            ctx.textAlign = 'center'; ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 34px "Heiti", "SimHei", sans-serif'; 
+            ctx.textAlign = 'center'; ctx.fillStyle = UI_THEME.primary; ctx.font = 'bold 34px "Heiti", "SimHei", sans-serif'; 
             ctx.fillText('干得漂亮！本次大考满分通关，无错题记录。', 400, 830);
             ctx.fillStyle = '#aaaaaa'; ctx.font = '18px "Heiti", "SimHei", sans-serif'; 
             ctx.fillText(`生成时间: ${new Date().toLocaleString()}`, 400, 880);
