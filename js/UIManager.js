@@ -1,7 +1,8 @@
 /** 互动 UI 管理器 (UIManager.js) 
- * 🌟 GitHub Pages 部署终极防御版：
- * 1. 彻底解决线上部署后，综合测试模块弹窗位置不正确、偏离中心的问题！引入纯内联最高权重 Flex 布局隔离，防断裂、防错乱。
- * 2. 完美保留所有前置修复：原生点击事件恢复（撤销/清空修复）、单屏图鉴、雷达图防冲突、分词成就证书、✨官能团劫持选中。
+ * 🌟 错题本弹窗终极修复版：
+ * 1. 彻底解决 GitHub Pages 线上部署后，“错题档案本”弹窗因绝对定位失效导致无法显示（点击无反应）的问题。
+ * 2. 对错题本引入最高权重的内联 Flex 布局防御机制，确保在任何环境下100%完美居中弹出！
+ * 3. 完美保留所有前置修复：原生点击事件恢复、单屏图鉴、雷达图防冲突、分词成就证书、✨官能团劫持选中。
  */
 
 const UI_THEME = {
@@ -280,7 +281,6 @@ class UIManager {
         overlay = document.createElement('div');
         overlay.id = 'help-instructions-overlay';
         overlay.className = this.baseOverlayClass;
-        // 🌟 防御代码：绝对全屏 Flex 居中，隔离一切 GitHub Pages CSS 异常
         overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 9999999 !important; animation: none !important; transition: none !important; opacity: 1 !important; pointer-events: auto !important;';
 
         const mod1HTML = `
@@ -353,7 +353,6 @@ class UIManager {
             else if (this.currentLevel === 4) helpContentHTML = mod4HTML;
         }
         
-        // 🌟 防御代码：内层剥离相对/绝对变换，纯 Block/Flex 控制尺寸
         overlay.innerHTML = `
             <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; padding: 40px 50px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.98) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; color: #fff; animation: none !important; transition: none !important;">
                 <button id="btn-close-help" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10;">❌</button>
@@ -606,7 +605,6 @@ class UIManager {
         gallery = document.createElement('div');
         gallery.id = 'final-gallery-overlay'; 
         gallery.className = this.baseOverlayClass; 
-        // 🌟 防御代码：绝对全屏 Flex 居中，隔离一切 GitHub Pages CSS 异常
         gallery.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 9999999 !important; animation: none !important; transition: none !important; opacity: 1 !important; pointer-events: auto !important;';
         
         gallery.innerHTML = `
@@ -672,11 +670,10 @@ class UIManager {
         overlay.id = 'final-quiz-dynamic-overlay';
         overlay.className = this.baseOverlayClass; 
         
-        // 🌟 防御代码：绝对全屏 Flex 居中，隔离一切 GitHub Pages CSS 异常
         overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 9999999 !important; animation: none !important; transition: none !important; opacity: 1 !important; pointer-events: auto !important;';
         
         overlay.innerHTML = `
-            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; box-sizing: border-box !important; background: rgba(20,20,30,0.98) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; z-index: 9999999; animation: none !important; transition: none !important;">
+            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; padding: 40px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.98) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; z-index: 9999999; animation: none !important; transition: none !important;">
                 <div id="dynamic-quiz-content" style="width: 100%; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; box-sizing: border-box; animation: none !important;"></div>
             </div>
         `;
@@ -803,7 +800,6 @@ class UIManager {
         overlay = document.createElement('div');
         overlay.id = 'equation-minigame-overlay';
         overlay.className = this.baseOverlayClass;
-        // 🌟 防御代码：绝对全屏 Flex 居中，隔离一切 GitHub Pages CSS 异常
         overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 9999999 !important; animation: none !important; transition: none !important; opacity: 1 !important; pointer-events: auto !important;';
         
         let contentHTML = '';
@@ -865,9 +861,8 @@ class UIManager {
             `;
         }
 
-        // 🌟 防御代码：内层剥离相对/绝对变换，纯 Block/Flex 控制尺寸
         overlay.innerHTML = `
-            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; padding: 30px 40px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.95) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 0 30px rgba(0,255,204,0.3) !important; text-align: center; animation: none !important; transition: none !important;">
+            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; padding: 30px 40px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.95) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; text-align: center; animation: none !important; transition: none !important;">
                 ${contentHTML}
             </div>
         `;
@@ -1567,11 +1562,10 @@ class UIManager {
         overlay = document.createElement('div');
         overlay.id = 'eval-dynamic-overlay';
         overlay.className = this.baseOverlayClass;
-        // 🌟 防御代码：绝对全屏 Flex 居中，隔离一切 GitHub Pages CSS 异常
         overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 9999999 !important; animation: none !important; transition: none !important; opacity: 1 !important; pointer-events: auto !important;';
 
         overlay.innerHTML = `
-            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; padding: 20px 40px !important; box-sizing: border-box !important; background: ${UI_THEME.bgDark} !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important;">
+            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; top: auto !important; left: auto !important; margin: auto !important; padding: 40px 50px !important; box-sizing: border-box !important; background: ${UI_THEME.bgDark} !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; animation: none !important; transition: none !important;">
                 
                 <button id="btn-close-eval-dynamic" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10000; cursor: pointer;">❌</button>
                 
@@ -1592,9 +1586,9 @@ class UIManager {
                 </div>
 
                 <div style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;">
-                    <button id="btn-wrong-questions-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: ${UI_THEME.danger}; color: ${UI_THEME.danger}; box-shadow: 0 0 20px rgba(255, 68, 68, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">📝 查看错题解析</button>
-                    <button id="btn-download-eval-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: ${UI_THEME.warning}; color: ${UI_THEME.warning}; box-shadow: 0 0 20px rgba(255, 170, 0, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">⬇️ 下载成就证书</button>
-                    <button id="btn-return-home-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: ${UI_THEME.primary}; color: ${UI_THEME.primary}; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">🏠 重新开始探索</button>
+                    <button id="btn-wrong-questions-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: ${UI_THEME.danger}; color: ${UI_THEME.danger}; box-shadow: 0 0 20px rgba(255, 68, 68, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer; pointer-events: auto;">📝 查看错题解析</button>
+                    <button id="btn-download-eval-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: ${UI_THEME.warning}; color: ${UI_THEME.warning}; box-shadow: 0 0 20px rgba(255, 170, 0, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer; pointer-events: auto;">⬇️ 下载成就证书</button>
+                    <button id="btn-return-home-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: ${UI_THEME.primary}; color: ${UI_THEME.primary}; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer; pointer-events: auto;">🏠 重新开始探索</button>
                 </div>
             </div>
         `;
