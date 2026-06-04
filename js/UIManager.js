@@ -1,8 +1,8 @@
 /** 互动 UI 管理器 (UIManager.js) 
  * 🌟 线上部署绝对防弹版：
- * 1. 【弹窗彻底修复】将所有动态弹窗彻底剥离 `.challenge-modal` 和 `.magic-scroll` 类的依赖，采用 100% 纯内联 `!important` 的 Flex 居中布局，绝对防止线上环境弹窗偏离屏幕或不显示！
- * 2. 【同行强制锁定】成果殿堂引入 `justify-content: flex-start` 和 `overflow-x: auto`，哪怕在极窄屏幕下也绝对同行显示，左右滑动浏览，杜绝掉落换行！
- * 3. 完美继承保留所有功能：官能团智能选取、雷达图修复、下载证书、防页面刷新重载等所有核心功能无一删减！
+ * 1. 【错题解析弹窗修复】彻底剥离外部异常 CSS 的干扰，采用最顶层的绝对定位金刚罩（z-index: 2147483647），确保点击错题解析100%瞬间居中弹出，绝不掉出屏幕！
+ * 2. 【成果殿堂同行修复】强制注入单行横向排布规则(nowrap)和溢出滚动(overflow-x)，无论屏幕尺寸如何，三个模型框绝对显示在同一行！
+ * 3. 完美继承保留所有功能：官能团智能选取、雷达图防冲突、下载证书、防页面刷新重载等所有核心功能无一删减！
  */
 
 const UI_THEME = {
@@ -13,6 +13,11 @@ const UI_THEME = {
     borderNormal: '#888',
     textMain: '#ffffff'
 };
+
+// 🌟 终极防线：绝对免疫 GitHub Pages CSS 干扰的全局样式串
+const FULLSCREEN_OVERLAY_STYLE = 'position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; display: flex !important; justify-content: center !important; align-items: center !important; background: rgba(0,0,0,0.85) !important; z-index: 2147483647 !important; margin: 0 !important; padding: 0 !important; pointer-events: auto !important; overflow: hidden !important; transform: none !important; opacity: 1 !important; visibility: visible !important;';
+
+const MODAL_BOX_STYLE = (borderColor) => `position: relative !important; width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; background: rgba(20,20,30,0.98) !important; border: 3px solid ${borderColor} !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,0,0,0.5) !important; margin: 0 auto !important; padding: 40px !important; box-sizing: border-box !important; overflow-y: auto !important; overflow-x: hidden !important; transform: none !important; pointer-events: auto !important; opacity: 1 !important; visibility: visible !important;`;
 
 class UIManager {
     constructor() {
@@ -174,20 +179,6 @@ class UIManager {
                 aiPanel.firstElementChild.style.cssText = 'width: 100%; height: 100%; overflow-y: auto; position: relative; box-sizing: border-box;';
             }
         }
-        
-        const evalPanel = document.getElementById('evaluation-panel');
-        if (evalPanel) {
-            evalPanel.className = this.baseOverlayClass + ' hidden';
-            if (!evalPanel.querySelector('.challenge-modal')) {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'challenge-modal';
-                wrapper.style.cssText = 'width: 100%; height: 100%; overflow-y: auto; position: relative; box-sizing: border-box; text-align: center;';
-                while (evalPanel.firstChild) {
-                    wrapper.appendChild(evalPanel.firstChild);
-                }
-                evalPanel.appendChild(wrapper);
-            }
-        }
     }
 
     initQuestionBank() {
@@ -281,9 +272,7 @@ class UIManager {
 
         overlay = document.createElement('div');
         overlay.id = 'help-instructions-overlay';
-        overlay.className = this.baseOverlayClass;
-        
-        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 99999999 !important; pointer-events: auto !important; margin: 0 !important; padding: 0 !important;';
+        overlay.style.cssText = FULLSCREEN_OVERLAY_STYLE;
 
         const mod1HTML = `
             <div class="help-module-title">🧩 模块一：结构探秘</div>
@@ -345,24 +334,21 @@ class UIManager {
         `;
 
         let helpContentHTML = "";
-        
-        if (this.userStats.finalCompleted) {
-            helpContentHTML = mod1HTML + mod2HTML + mod3HTML + mod4HTML;
-        } else {
+        if (this.userStats.finalCompleted) { helpContentHTML = mod1HTML + mod2HTML + mod3HTML + mod4HTML; } 
+        else {
             if (this.currentLevel === 1) helpContentHTML = mod1HTML;
             else if (this.currentLevel === 2) helpContentHTML = mod2HTML;
             else if (this.currentLevel === 3) helpContentHTML = mod3HTML;
             else if (this.currentLevel === 4) helpContentHTML = mod4HTML;
         }
         
-        // 彻底清除依赖，直接内联
         overlay.innerHTML = `
-            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; margin: 0 !important; padding: 40px 50px !important; box-sizing: border-box !important; background: ${UI_THEME.bgDark} !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; color: #fff;">
-                <button type="button" id="btn-close-help" class="magic-btn close-btn" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 50px !important; height: 50px !important; font-size: 1.8em !important; padding: 0 !important; z-index: 100000 !important; cursor: pointer !important;">❌</button>
-                <h2 style="color: ${UI_THEME.primary}; font-size: 3.5em; text-align: center; margin-bottom: 20px; text-shadow: 0 0 15px rgba(0,255,204,0.5); font-family: 'Heiti', sans-serif;">📜 ${this.userStats.finalCompleted ? '全阶段操作指南' : '本阶段操作指南'}</h2>
+            <div style="${MODAL_BOX_STYLE(UI_THEME.primary)} color: #fff;">
+                <button type="button" id="btn-close-help" class="magic-btn close-btn" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 50px !important; height: 50px !important; font-size: 1.8em !important; padding: 0 !important; z-index: 100000 !important; cursor: pointer !important; background: transparent; border: none; color: #ff4444;">❌</button>
+                <h2 style="color: ${UI_THEME.primary}; font-size: 3.5em !important; text-align: center !important; margin: 0 0 20px 0 !important; text-shadow: 0 0 15px rgba(0,255,204,0.5) !important; font-family: 'Heiti', sans-serif !important;">📜 ${this.userStats.finalCompleted ? '全阶段操作指南' : '本阶段操作指南'}</h2>
                 ${helpContentHTML}
-                <div style="text-align: center; margin-top: 40px;">
-                    <button type="button" id="btn-close-help-bottom" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: #fff; color: #fff; font-family: 'Heiti', sans-serif; cursor: pointer;">我明白了</button>
+                <div style="text-align: center !important; margin-top: 40px !important; width: 100% !important;">
+                    <button type="button" id="btn-close-help-bottom" class="magic-btn" style="font-size: 2em !important; padding: 15px 50px !important; border: 2px solid #fff !important; color: #fff !important; font-family: 'Heiti', sans-serif !important; cursor: pointer !important; background: transparent !important;">我明白了</button>
                 </div>
             </div>
         `;
@@ -603,46 +589,42 @@ class UIManager {
         this.updateLevelUI(); this.saveProgress();
     }
 
+    // 🌟 终极修复 1：成果殿堂 3模型同行显示。引入强力 flex-wrap: nowrap 和极致内联防崩
     showFinalShowcase() {
         let gallery = document.getElementById('final-gallery-overlay');
         if (gallery) gallery.remove();
 
         gallery = document.createElement('div');
         gallery.id = 'final-gallery-overlay'; 
-        gallery.className = this.baseOverlayClass; 
+        gallery.style.cssText = FULLSCREEN_OVERLAY_STYLE;
         
-        // 🌟 强效隔离：固定顶层铺满，防止外部挤压
-        gallery.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 99999999 !important; pointer-events: auto !important; margin: 0 !important; padding: 0 !important;';
-        
-        // 🌟 内部隔离：彻底使用 inline 防御
         gallery.innerHTML = `
-            <div style="width: 90vw !important; max-width: 1300px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; margin: 0 !important; padding: 40px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.98) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important;">
-                <button type="button" id="btn-close-final-showcase" class="magic-btn close-btn" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 50px !important; height: 50px !important; font-size: 1.8em !important; padding: 0 !important; z-index: 100000 !important; cursor: pointer !important;">❌</button>
-                
+            <div style="${MODAL_BOX_STYLE('#00ffcc')}">
+                <button type="button" id="btn-close-final-showcase" class="magic-btn close-btn" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 50px !important; height: 50px !important; font-size: 1.8em !important; cursor: pointer !important; background: transparent; border: none; color: #ff4444; z-index: 999999;">❌</button>
                 <div style="text-align: center !important; width: 100% !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; min-height: min-content !important;">
-                    <h2 style="color: var(--rpg-gold); font-size: 3.5em; margin-bottom: 40px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); letter-spacing: 5px; font-family: 'Heiti', sans-serif; margin-top: 0;">🏛️ 炼金成果殿堂</h2>
+                    <h2 style="color: var(--rpg-gold); font-size: 3.5em !important; margin: 0 0 40px 0 !important; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6) !important; letter-spacing: 5px !important; font-family: 'Heiti', sans-serif !important;">🏛️ 炼金成果殿堂</h2>
                     
-                    <div style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: flex-start !important; gap: 20px !important; width: 100% !important; margin-bottom: 40px !important; overflow-x: auto !important; padding-bottom: 15px !important;">
+                    <div style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: stretch !important; justify-content: flex-start !important; gap: 20px !important; width: 100% !important; max-width: 1200px !important; margin: 0 0 40px 0 !important; overflow-x: auto !important; padding-bottom: 20px !important;">
                         
-                        <div class="showcase-item" style="flex: 0 0 auto !important; width: 280px !important; background: rgba(0,0,0,0.6) !important; border: 3px solid ${UI_THEME.primary} !important; border-radius: 15px !important; padding: 20px !important; box-shadow: 0 0 30px rgba(0,255,204,0.3) !important;">
-                            <h3 style="color: ${UI_THEME.primary} !important; font-size: 1.6em !important; margin-top: 0 !important; margin-bottom: 15px !important; text-shadow: 0 0 10px ${UI_THEME.primary} !important; font-family: 'Heiti', sans-serif !important; white-space: nowrap !important;">基础分子(乙醇)</h3>
-                            <div id="showcase-ethanol" style="width: 100% !important; height: 240px !important; margin: 0 auto !important;"></div>
+                        <div class="showcase-item" style="flex: 0 0 auto !important; width: 300px !important; background: rgba(0,0,0,0.6) !important; border: 3px solid ${UI_THEME.primary} !important; border-radius: 15px !important; padding: 20px !important; box-sizing: border-box !important; display: flex !important; flex-direction: column !important; align-items: center !important;">
+                            <h3 style="color: ${UI_THEME.primary} !important; font-size: 1.6em !important; margin: 0 0 15px 0 !important; text-shadow: 0 0 10px ${UI_THEME.primary} !important; font-family: 'Heiti', sans-serif !important; white-space: nowrap !important;">基础分子(乙醇)</h3>
+                            <div id="showcase-ethanol" style="width: 100% !important; height: 240px !important;"></div>
                         </div>
                         
-                        <div class="showcase-item" style="flex: 0 0 auto !important; width: 280px !important; background: rgba(0,0,0,0.6) !important; border: 3px solid ${UI_THEME.warning} !important; border-radius: 15px !important; padding: 20px !important; box-shadow: 0 0 30px rgba(255,170,0,0.3) !important;">
-                            <h3 style="color: ${UI_THEME.warning} !important; font-size: 1.6em !important; margin-top: 0 !important; margin-bottom: 15px !important; text-shadow: 0 0 10px ${UI_THEME.warning} !important; font-family: 'Heiti', sans-serif !important; white-space: nowrap !important;">置换产物(乙醇钠)</h3>
-                            <div id="showcase-na" style="width: 100% !important; height: 240px !important; margin: 0 auto !important;"></div>
+                        <div class="showcase-item" style="flex: 0 0 auto !important; width: 300px !important; background: rgba(0,0,0,0.6) !important; border: 3px solid ${UI_THEME.warning} !important; border-radius: 15px !important; padding: 20px !important; box-sizing: border-box !important; display: flex !important; flex-direction: column !important; align-items: center !important;">
+                            <h3 style="color: ${UI_THEME.warning} !important; font-size: 1.6em !important; margin: 0 0 15px 0 !important; text-shadow: 0 0 10px ${UI_THEME.warning} !important; font-family: 'Heiti', sans-serif !important; white-space: nowrap !important;">置换产物(乙醇钠)</h3>
+                            <div id="showcase-na" style="width: 100% !important; height: 240px !important;"></div>
                         </div>
                         
-                        <div class="showcase-item" style="flex: 0 0 auto !important; width: 280px !important; background: rgba(0,0,0,0.6) !important; border: 3px solid ${UI_THEME.danger} !important; border-radius: 15px !important; padding: 20px !important; box-shadow: 0 0 30px rgba(255,68,68,0.3) !important;">
-                            <h3 style="color: ${UI_THEME.danger} !important; font-size: 1.6em !important; margin-top: 0 !important; margin-bottom: 15px !important; text-shadow: 0 0 10px ${UI_THEME.danger} !important; font-family: 'Heiti', sans-serif !important; white-space: nowrap !important;">氧化产物(乙醛)</h3>
-                            <div id="showcase-cu" style="width: 100% !important; height: 240px !important; margin: 0 auto !important;"></div>
+                        <div class="showcase-item" style="flex: 0 0 auto !important; width: 300px !important; background: rgba(0,0,0,0.6) !important; border: 3px solid ${UI_THEME.danger} !important; border-radius: 15px !important; padding: 20px !important; box-sizing: border-box !important; display: flex !important; flex-direction: column !important; align-items: center !important;">
+                            <h3 style="color: ${UI_THEME.danger} !important; font-size: 1.6em !important; margin: 0 0 15px 0 !important; text-shadow: 0 0 10px ${UI_THEME.danger} !important; font-family: 'Heiti', sans-serif !important; white-space: nowrap !important;">氧化产物(乙醛)</h3>
+                            <div id="showcase-cu" style="width: 100% !important; height: 240px !important;"></div>
                         </div>
 
                     </div>
                     
-                    <p style="color: #ddd; font-size: 1.5em; margin-top: 10px; margin-bottom: 30px; text-shadow: 1px 1px 3px #000; font-family: 'Songti', serif;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
-                    <button type="button" id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 20px; font-family: 'Heiti', sans-serif; cursor: pointer;">📝 开始最终考核</button>
+                    <p style="color: #ddd !important; font-size: 1.5em !important; margin: 0 0 30px 0 !important; text-shadow: 1px 1px 3px #000 !important; font-family: 'Songti', serif !important;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
+                    <button type="button" id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em !important; padding: 15px 60px !important; border: 2px solid var(--rpg-gold) !important; color: var(--rpg-gold) !important; text-shadow: 0 0 10px rgba(255,215,0,0.5) !important; margin: 0 !important; font-family: 'Heiti', sans-serif !important; cursor: pointer !important; background: transparent !important;">📝 开始最终考核</button>
                 </div>
             </div>
         `;
@@ -684,12 +666,10 @@ class UIManager {
 
         overlay = document.createElement('div');
         overlay.id = 'final-quiz-dynamic-overlay';
-        overlay.className = this.baseOverlayClass; 
-        
-        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 99999999 !important; pointer-events: auto !important; margin: 0 !important; padding: 0 !important;';
+        overlay.style.cssText = FULLSCREEN_OVERLAY_STYLE;
         
         overlay.innerHTML = `
-            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; margin: 0 !important; padding: 40px !important; box-sizing: border-box !important; background: ${UI_THEME.bgDark} !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important;">
+            <div style="${MODAL_BOX_STYLE('#00ffcc')}">
                 <div id="dynamic-quiz-content" style="width: 100% !important; min-height: 100% !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; padding: 20px 0 !important; box-sizing: border-box !important;"></div>
             </div>
         `;
@@ -708,12 +688,12 @@ class UIManager {
         let html = `
             <div style="display: flex !important; flex-direction: column !important; align-items: center !important; text-align: left !important; padding: 20px 30px !important; box-sizing: border-box !important; width: 100% !important; max-width: 100% !important;">
                 
-                <h3 style="display: block !important; width: 100% !important; color: ${UI_THEME.primary} !important; font-size: 3.5em !important; font-family: 'Heiti', 'SimHei', sans-serif !important; margin-bottom: 30px !important; text-shadow: 0 0 12px rgba(0,255,204,0.6) !important; text-align: center !important; flex-shrink: 0 !important; margin-top:0 !important;">
+                <h3 style="display: block !important; width: 100% !important; color: ${UI_THEME.primary} !important; font-size: 3.5em !important; font-family: 'Heiti', 'SimHei', sans-serif !important; margin: 0 0 30px 0 !important; text-shadow: 0 0 12px rgba(0,255,204,0.6) !important; text-align: center !important; flex-shrink: 0 !important;">
                     最终考核 (${this.finalQuizState.currentIndex + 1}/5)
                 </h3>
                 
                 <div style="background: rgba(20, 25, 35, 0.95) !important; border: 2px solid ${UI_THEME.primary} !important; border-radius: 16px !important; padding: 40px 50px !important; box-shadow: 0 0 30px rgba(0,255,204,0.2) !important; width: 100% !important; max-width: 1200px !important; box-sizing: border-box !important;">
-                    <div style="font-size: 2.8em !important; font-family: 'Songti', 'SimSun', serif !important; color: #fff !important; margin-bottom: 40px !important; line-height: 1.8 !important; word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important;">
+                    <div style="font-size: 2.8em !important; font-family: 'Songti', 'SimSun', serif !important; color: #fff !important; margin: 0 0 40px 0 !important; line-height: 1.8 !important; word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important;">
                         ${q.question}
                     </div>
                     <div style="display: flex !important; flex-direction: column !important; gap: 20px !important; width: 100% !important;">
@@ -762,13 +742,13 @@ class UIManager {
         container.innerHTML = `
             <div style="display: flex !important; flex-direction: column !important; align-items: center !important; text-align: left !important; padding: 20px 30px !important; box-sizing: border-box !important; width: 100% !important; max-width: 100% !important;">
                 
-                <h3 style="display: block !important; width: 100% !important; color:${resultColor} !important; font-size: 3.5em !important; font-family: 'Heiti', 'SimHei', sans-serif !important; margin-bottom: 30px !important; text-shadow: 0 0 15px ${resultColor} !important; text-align: center !important; flex-shrink: 0 !important; margin-top: 0 !important;">
+                <h3 style="display: block !important; width: 100% !important; color:${resultColor} !important; font-size: 3.5em !important; font-family: 'Heiti', 'SimHei', sans-serif !important; margin: 0 0 30px 0 !important; text-shadow: 0 0 15px ${resultColor} !important; text-align: center !important; flex-shrink: 0 !important;">
                     ${resultTitle}
                 </h3>
                 
                 <div style="background: rgba(20, 25, 35, 0.95) !important; border: 2px solid ${resultColor} !important; border-radius: 16px !important; padding: 40px 50px !important; box-shadow: 0 0 30px rgba(${isCorrect ? '0,255,204' : '255,68,68'}, 0.25) !important; width: 100% !important; max-width: 1200px !important; box-sizing: border-box !important;">
                     
-                    <div style="font-size: 2.8em !important; font-family: 'Songti', 'SimSun', serif !important; line-height: 1.8 !important; color: #fff !important; word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important;">
+                    <div style="font-size: 2.8em !important; font-family: 'Songti', 'SimSun', serif !important; line-height: 1.8 !important; color: #fff !important; word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; margin: 0 !important;">
                         ${isCorrect ? `<span style="color:${UI_THEME.primary} !important; font-weight:bold !important; font-family: 'Heiti', sans-serif !important;">太棒了！</span><br><br>` : `<span style="color:${UI_THEME.danger} !important; text-decoration:line-through !important;">你选择了：${q.options[selectedIdx]}</span><br><span style="color:${UI_THEME.primary} !important; font-weight:bold !important; font-family: 'Heiti', sans-serif !important;">正确答案：${q.options[q.correctIdx]}</span><br><br>`}
                         ${q.explanation}
                     </div>
@@ -776,7 +756,7 @@ class UIManager {
                 </div>
                 
                 <div style="display: block !important; width: 100% !important; margin-top: 50px !important; text-align: center !important;">
-                    <button type="button" id="btn-next-quiz" class="magic-btn" style="display: inline-block !important; font-size: 3em !important; font-family: 'Heiti', 'SimHei', sans-serif !important; padding: 20px 80px !important; border-color: var(--rpg-gold, #ffaa00) !important; color: var(--rpg-gold, #ffaa00) !important; box-shadow: 0 0 25px rgba(255,215,0,0.4) !important; cursor: pointer !important;">${this.finalQuizState.currentIndex < 4 ? '下一题' : '查看最终成绩'}</button>
+                    <button type="button" id="btn-next-quiz" class="magic-btn" style="display: inline-block !important; font-size: 3em !important; font-family: 'Heiti', 'SimHei', sans-serif !important; padding: 20px 80px !important; border: 2px solid var(--rpg-gold, #ffaa00) !important; color: var(--rpg-gold, #ffaa00) !important; box-shadow: 0 0 25px rgba(255,215,0,0.4) !important; cursor: pointer !important; background: transparent !important;">${this.finalQuizState.currentIndex < 4 ? '下一题' : '查看最终成绩'}</button>
                 </div>
             </div>
         `;
@@ -817,42 +797,41 @@ class UIManager {
 
         overlay = document.createElement('div');
         overlay.id = 'equation-minigame-overlay';
-        overlay.className = this.baseOverlayClass;
-        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 99999999 !important; pointer-events: auto !important; margin: 0 !important; padding: 0 !important;';
+        overlay.style.cssText = FULLSCREEN_OVERLAY_STYLE;
         
         let contentHTML = '';
 
         if (type === 'sodium') {
             contentHTML = `
-                <button type="button" id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 60px !important; height: 60px !important; font-size: 2.2em !important; z-index: 1000000 !important; cursor:pointer !important; padding: 0 !important;">❌</button>
-                <h2 style="color: var(--rpg-mana); font-size: 3em; margin-bottom: 15px; margin-top: 10px; font-family: 'Heiti', sans-serif;">✅ 置换反应方程式测试</h2>
-                <p style="color: #fff; font-size: 1.6em; margin-bottom: 25px; font-family: 'Songti', serif;">请拖拽正确的系数和产物，完成方程式的配平：</p>
+                <button type="button" id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 60px !important; height: 60px !important; font-size: 2.2em !important; z-index: 1000000 !important; cursor:pointer !important; padding: 0 !important; background: transparent; border: none; color: #ff4444;">❌</button>
+                <h2 style="color: var(--rpg-mana); font-size: 3em !important; margin: 0 0 15px 0 !important; font-family: 'Heiti', sans-serif !important;">✅ 置换反应方程式测试</h2>
+                <p style="color: #fff !important; font-size: 1.6em !important; margin: 0 0 25px 0 !important; font-family: 'Songti', serif !important;">请拖拽正确的系数和产物，完成方程式的配平：</p>
                 
-                <div id="eq-drag-pool" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 25px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid #444;">
+                <div id="eq-drag-pool" style="display: flex !important; gap: 15px !important; justify-content: center !important; flex-wrap: wrap !important; margin: 0 0 25px 0 !important; background: rgba(0,0,0,0.3) !important; padding: 15px !important; border-radius: 12px !important; border: 1px solid #444 !important;">
                     <div class="eq-drag" draggable="true" data-val="2">2</div>
                     <div class="eq-drag" draggable="true" data-val="3">3</div>
                     <div class="eq-drag" draggable="true" data-val="CH3CH2ONa">CH₃CH₂ONa</div>
                     <div class="eq-drag" draggable="true" data-val="H2">H₂↑</div>
-                    <div class="eq-drag" draggable="true" data-val="H2O">HO</div>
+                    <div class="eq-drag" draggable="true" data-val="H2O">H₂O</div>
                 </div>
 
-                <div style="font-size: 2.4em; margin-bottom: 30px; background: rgba(0,0,0,0.5); padding: 25px 15px; border-radius: 12px; border: 3px solid #00ffcc; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 5px; font-family: monospace; color: #fff;">
+                <div style="font-size: 2.4em !important; margin: 0 0 30px 0 !important; background: rgba(0,0,0,0.5) !important; padding: 25px 15px !important; border-radius: 12px !important; border: 3px solid #00ffcc !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-wrap: wrap !important; gap: 5px !important; font-family: monospace !important; color: #fff !important;">
                     <div class="eq-slot" data-expected="2"></div> CH₃CH₂OH + 
                     <div class="eq-slot" data-expected="2"></div> Na → 
-                    <div class="eq-slot" data-expected="2"></div> <div class="eq-slot" data-expected="CH3CH2ONa" style="min-width: 150px;"></div> + 
-                    <div class="eq-slot" data-expected="H2" style="min-width: 80px;"></div>
+                    <div class="eq-slot" data-expected="2"></div> <div class="eq-slot" data-expected="CH3CH2ONa" style="min-width: 150px !important;"></div> + 
+                    <div class="eq-slot" data-expected="H2" style="min-width: 80px !important;"></div>
                 </div>
 
-                <p id="final-eq-feedback" style="color: #ff4444; font-size: 1.8em; height: 30px; margin-bottom: 20px; font-weight: bold; font-family: 'Heiti', sans-serif;"></p>
-                <button type="button" id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold); font-family: 'Heiti', sans-serif;">提交验证</button>
+                <p id="final-eq-feedback" style="color: #ff4444 !important; font-size: 1.8em !important; height: 30px !important; margin: 0 0 20px 0 !important; font-weight: bold !important; font-family: 'Heiti', sans-serif !important;"></p>
+                <button type="button" id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em !important; padding: 15px 50px !important; border: 2px solid var(--rpg-gold) !important; color: var(--rpg-gold) !important; font-family: 'Heiti', sans-serif !important; background: transparent !important; cursor: pointer !important;">提交验证</button>
             `;
         } else if (type === 'oxidation') {
             contentHTML = `
-                <button type="button" id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 60px !important; height: 60px !important; font-size: 2.2em !important; z-index: 1000000 !important; cursor:pointer !important; padding: 0 !important;">❌</button>
-                <h2 style="color: var(--rpg-mana); font-size: 3em; margin-bottom: 15px; margin-top: 10px; font-family: 'Heiti', sans-serif;">✅ 催化氧化方程式测试</h2>
-                <p style="color: #fff; font-size: 1.6em; margin-bottom: 25px; font-family: 'Songti', serif;">请拖拽正确的化学计量数、产物与反应条件，完成方程式书写：</p>
+                <button type="button" id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 60px !important; height: 60px !important; font-size: 2.2em !important; z-index: 1000000 !important; cursor:pointer !important; padding: 0 !important; background: transparent; border: none; color: #ff4444;">❌</button>
+                <h2 style="color: var(--rpg-mana); font-size: 3em !important; margin: 0 0 15px 0 !important; font-family: 'Heiti', sans-serif !important;">✅ 催化氧化方程式测试</h2>
+                <p style="color: #fff !important; font-size: 1.6em !important; margin: 0 0 25px 0 !important; font-family: 'Songti', serif !important;">请拖拽正确的化学计量数、产物与反应条件，完成方程式书写：</p>
                 
-                <div id="eq-drag-pool" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 25px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid #444;">
+                <div id="eq-drag-pool" style="display: flex !important; gap: 15px !important; justify-content: center !important; flex-wrap: wrap !important; margin: 0 0 25px 0 !important; background: rgba(0,0,0,0.3) !important; padding: 15px !important; border-radius: 12px !important; border: 1px solid #444 !important;">
                     <div class="eq-drag" draggable="true" data-val="2">2</div>
                     <div class="eq-drag" draggable="true" data-val="O2">O₂</div>
                     <div class="eq-drag" draggable="true" data-val="Cu">Cu</div>
@@ -861,26 +840,26 @@ class UIManager {
                     <div class="eq-drag" draggable="true" data-val="H2O">H₂O</div>
                 </div>
 
-                <div style="font-size: 2.4em; margin-bottom: 30px; background: rgba(0,0,0,0.5); padding: 25px 15px; border-radius: 12px; border: 3px solid #00ffcc; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 5px; font-family: monospace; color: #fff;">
-                    <div class="eq-slot" data-expected="2" style="min-width: 40px;"></div> CH₃CH₂OH + <div class="eq-slot" data-expected="O2" style="min-width: 60px;"></div>
+                <div style="font-size: 2.4em !important; margin: 0 0 30px 0 !important; background: rgba(0,0,0,0.5) !important; padding: 25px 15px !important; border-radius: 12px !important; border: 3px solid #00ffcc !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-wrap: wrap !important; gap: 5px !important; font-family: monospace !important; color: #fff !important;">
+                    <div class="eq-slot" data-expected="2" style="min-width: 40px !important;"></div> CH₃CH₂OH + <div class="eq-slot" data-expected="O2" style="min-width: 60px !important;"></div>
                     
-                    <div style="display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin: 0 10px;">
-                        <div class="eq-slot" data-expected="Cu" style="height:35px; min-width:50px; font-size:0.7em; margin-bottom:2px; border-color:#ffaa00;"></div>
-                        <span style="color:#ffaa00; margin-top:-5px; margin-bottom:-5px;">――→</span>
-                        <div class="eq-slot" data-expected="△" style="height:35px; min-width:50px; font-size:0.7em; margin-top:2px; border-color:#ffaa00;"></div>
+                    <div style="display:inline-flex !important; flex-direction:column !important; align-items:center !important; vertical-align:middle !important; margin: 0 10px !important;">
+                        <div class="eq-slot" data-expected="Cu" style="height:35px !important; min-width:50px !important; font-size:0.7em !important; margin: 0 0 2px 0 !important; border-color:#ffaa00 !important;"></div>
+                        <span style="color:#ffaa00 !important; margin: -5px 0 !important;">――→</span>
+                        <div class="eq-slot" data-expected="△" style="height:35px !important; min-width:50px !important; font-size:0.7em !important; margin: 2px 0 0 0 !important; border-color:#ffaa00 !important;"></div>
                     </div>
 
-                    <div class="eq-slot" data-expected="2" style="min-width: 40px;"></div> <div class="eq-slot" data-expected="CH3CHO" style="min-width: 130px;"></div> + 
-                    <div class="eq-slot" data-expected="2" style="min-width: 40px;"></div> <div class="eq-slot" data-expected="H2O" style="min-width: 70px;"></div>
+                    <div class="eq-slot" data-expected="2" style="min-width: 40px !important;"></div> <div class="eq-slot" data-expected="CH3CHO" style="min-width: 130px !important;"></div> + 
+                    <div class="eq-slot" data-expected="2" style="min-width: 40px !important;"></div> <div class="eq-slot" data-expected="H2O" style="min-width: 70px !important;"></div>
                 </div>
 
-                <p id="final-eq-feedback" style="color: #ff4444; font-size: 1.8em; height: 30px; margin-bottom: 20px; font-weight: bold; font-family: 'Heiti', sans-serif;"></p>
-                <button type="button" id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold); font-family: 'Heiti', sans-serif;">提交验证</button>
+                <p id="final-eq-feedback" style="color: #ff4444 !important; font-size: 1.8em !important; height: 30px !important; margin: 0 0 20px 0 !important; font-weight: bold !important; font-family: 'Heiti', sans-serif !important;"></p>
+                <button type="button" id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em !important; padding: 15px 50px !important; border: 2px solid var(--rpg-gold) !important; color: var(--rpg-gold) !important; font-family: 'Heiti', sans-serif !important; background: transparent !important; cursor: pointer !important;">提交验证</button>
             `;
         }
 
         overlay.innerHTML = `
-            <div style="width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; margin: 0 !important; padding: 30px 40px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.95) !important; border: 3px solid #00ffcc !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,255,204,0.3) !important; text-align: center !important;">
+            <div style="${MODAL_BOX_STYLE('#00ffcc')} text-align: center !important;">
                 ${contentHTML}
             </div>
         `;
@@ -1548,6 +1527,15 @@ class UIManager {
         }
     }
 
+    // 🌟 GitHub 终极防御：提取所有新弹窗通用的强力底层 CSS (避免代码过度重复)
+    get _fullScreenOverlayStyle() {
+        return 'position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; display: flex !important; justify-content: center !important; align-items: center !important; background: rgba(0,0,0,0.85) !important; z-index: 2147483647 !important; margin: 0 !important; padding: 0 !important; pointer-events: auto !important; overflow: hidden !important; transform: none !important; opacity: 1 !important; visibility: visible !important;';
+    }
+    
+    _getModalBoxStyle(borderColor) {
+        return `position: relative !important; width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; background: ${UI_THEME.bgDark} !important; border: 3px solid ${borderColor} !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,0,0,0.5) !important; margin: 0 auto !important; padding: 40px !important; box-sizing: border-box !important; overflow-y: auto !important; overflow-x: hidden !important; transform: none !important; pointer-events: auto !important; opacity: 1 !important; visibility: visible !important;`;
+    }
+
     // 🌟 GitHub 环境终极防御区：为错题本单独创建绝对安全的顶级覆盖层
     showWrongQuestions() {
         const existingOverlay = document.getElementById('wrong-question-overlay');
@@ -1555,49 +1543,51 @@ class UIManager {
         
         const overlay = document.createElement('div');
         overlay.id = 'wrong-question-overlay';
-        overlay.className = this.baseOverlayClass; 
         
         // 彻底接管外部 CSS 的 fixed 样式
-        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.85) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 99999999 !important; animation: none !important; transition: none !important; opacity: 1 !important; pointer-events: auto !important; margin: 0 !important; padding: 0 !important;';
+        overlay.style.cssText = this._fullScreenOverlayStyle;
 
-        const panel = document.createElement('div');
-        panel.id = 'wrong-question-panel';
+        let content = `
+            <button type="button" id="btn-close-wq-top" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 50px !important; height: 50px !important; font-size: 1.8em !important; padding: 0 !important; z-index: 100000 !important; cursor: pointer !important; background: transparent !important; border: none !important; color: #ff4444 !important; transform: none !important;">❌</button>
+            <h2 style="color: #ff4444 !important; text-align: center !important; margin: 0 0 40px 0 !important; font-size: 3.5em !important; font-family: 'Heiti', sans-serif !important; text-shadow: 2px 2px 5px #000 !important;">错题档案本</h2>
+        `;
         
-        // 脱离原有类的束缚
-        panel.style.cssText = 'width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; overflow-y: auto !important; position: relative !important; transform: none !important; margin: 0 !important; padding: 40px !important; box-sizing: border-box !important; background: rgba(20,20,30,0.98) !important; border: 3px solid #ff4444 !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(255,68,68,0.3) !important; color: #fff; animation: none !important; transition: none !important;';
-        
-        let content = `<h2 style="color: #ff4444; text-align: center; margin-bottom: 40px; font-size: 3.5em; font-family: 'Heiti', 'SimHei', sans-serif; text-shadow: 2px 2px 5px #000; margin-top: 0;">错题档案本</h2>`;
-        
+        // 错题内容区
+        content += `<div style="width: 100% !important; display: flex !important; flex-direction: column !important; gap: 30px !important;">`;
         if (!this.userStats.wrongQuestions || this.userStats.wrongQuestions.length === 0) {
-            content += `<div style="text-align: center; padding: 50px; background: rgba(0,255,204,0.1); border-radius: 20px;"><h3 style="color: #00ffcc; font-size: 3em; font-family: 'Heiti', sans-serif;">完美无瑕！</h3><p style="color: #fff; font-size: 2em; margin-top: 30px; font-family: 'Songti', 'SimSun', serif;">大考全对，无错题记录。</p></div>`;
+            content += `<div style="text-align: center !important; padding: 50px !important; background: rgba(0,255,204,0.1) !important; border-radius: 20px !important;"><h3 style="color: #00ffcc !important; font-size: 3em !important; font-family: 'Heiti', sans-serif !important; margin: 0 0 30px 0 !important;">完美无瑕！</h3><p style="color: #fff !important; font-size: 2em !important; font-family: 'Songti', serif !important; margin: 0 !important;">大考全对，无错题记录。</p></div>`;
         } else {
             this.userStats.wrongQuestions.forEach((wq, index) => {
                 let modText = ["", "探究阶段", "取代实验", "氧化实验", "最终大考"][wq.module] || "考核点";
                 content += `
-                    <div style="background: rgba(0,0,0,0.6); padding: 40px; border: 2px solid #ff4444; border-radius: 12px; margin-bottom: 30px; text-align: left;">
-                        <div style="color: #ffaa00; font-weight: bold; margin-bottom: 20px; font-size: 2.5em; font-family: 'Heiti', sans-serif;">记录 #${index + 1} &nbsp;<span style="color:#aaa; font-size:0.8em; font-weight:normal;">(${modText})</span></div>
-                        <div style="color: #fff; line-height: 1.8; font-size: 3em; font-family: 'Songti', 'SimSun', serif; word-break: break-word; white-space: normal;">${wq.explanation}</div>
+                    <div style="background: rgba(0,0,0,0.6) !important; padding: 40px !important; border: 2px solid #ff4444 !important; border-radius: 12px !important; text-align: left !important; width: 100% !important; box-sizing: border-box !important;">
+                        <div style="color: #ffaa00 !important; font-weight: bold !important; margin-bottom: 20px !important; font-size: 2.5em !important; font-family: 'Heiti', sans-serif !important;">记录 #${index + 1} &nbsp;<span style="color:#aaa !important; font-size:0.8em !important; font-weight:normal !important;">(${modText})</span></div>
+                        <div style="color: #fff !important; line-height: 1.8 !important; font-size: 2.8em !important; font-family: 'Songti', serif !important; word-break: break-word !important; white-space: normal !important; overflow-wrap: break-word !important;">${wq.explanation}</div>
                     </div>
                 `;
             });
         }
+        content += `</div>`; // 关闭错题区
         
         content += `
-            <div style="text-align: center; margin-top: 50px; display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
-                <button type="button" id="btn-download-wq-txt" class="magic-btn" style="font-size: 2.5em; font-family: 'Heiti', sans-serif; padding: 15px 50px; border-color: #00ffcc; color: #00ffcc; box-shadow: 0 0 20px rgba(0,255,204,0.3); cursor: pointer;">⬇️ 下载错题复习(TXT)</button>
-                <button type="button" id="btn-close-wq-panel" class="magic-btn" style="font-size: 2.5em; font-family: 'Heiti', sans-serif; padding: 15px 50px; border-color: #fff; color: #fff; cursor: pointer;">❌ 关闭档案</button>
+            <div style="text-align: center !important; margin-top: 50px !important; display: flex !important; justify-content: center !important; gap: 40px !important; flex-wrap: wrap !important; width: 100% !important;">
+                <button type="button" id="btn-download-wq-txt" class="magic-btn" style="font-size: 2.5em !important; font-family: 'Heiti', sans-serif !important; padding: 15px 50px !important; border: 2px solid #00ffcc !important; color: #00ffcc !important; box-shadow: 0 0 20px rgba(0,255,204,0.3) !important; cursor: pointer !important; background: transparent !important;">⬇️ 下载错题复习(TXT)</button>
+                <button type="button" id="btn-close-wq-panel" class="magic-btn" style="font-size: 2.5em !important; font-family: 'Heiti', sans-serif !important; padding: 15px 50px !important; border: 2px solid #fff !important; color: #fff !important; cursor: pointer !important; background: transparent !important;">❌ 关闭档案</button>
             </div>
         `;
         
-        panel.innerHTML = content;
-        overlay.appendChild(panel);
+        overlay.innerHTML = `<div style="${this._getModalBoxStyle(UI_THEME.danger)}">${content}</div>`;
         document.body.appendChild(overlay); 
 
         setTimeout(() => {
             const btnDownloadTxt = document.getElementById('btn-download-wq-txt');
             if (btnDownloadTxt) btnDownloadTxt.onclick = (e) => { if(e) e.preventDefault(); this.downloadWrongQuestionsText(); };
+            
+            const closeFunc = (e) => { if(e) e.preventDefault(); overlay.remove(); };
             const btnClosePanel = document.getElementById('btn-close-wq-panel');
-            if (btnClosePanel) btnClosePanel.onclick = (e) => { if(e) e.preventDefault(); overlay.remove(); };
+            if (btnClosePanel) btnClosePanel.onclick = closeFunc;
+            const btnCloseTop = document.getElementById('btn-close-wq-top');
+            if (btnCloseTop) btnCloseTop.onclick = closeFunc;
         }, 100);
     }
 }
