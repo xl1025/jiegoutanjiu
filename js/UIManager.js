@@ -1,9 +1,9 @@
 /** 互动 UI 管理器 (UIManager.js) 
  * 🌟 终极综合稳定版：
- * 1. 【框选功能增强】在手形工具(🖐️)的复制/删除旁注入了【选出官能团】功能，采用底层原子数据强行劫持，确保100%精准选中。
- * 2. 【综合考核修复】测试题采用独立无遮挡图层，强制最高层级，闪电秒出，绝不卡死。
- * 3. 【终极报告修复】成绩单雷达图采用全新的独立动态 ID (radarChart-dynamic)，完美解决无法渲染与证书无法下载的 Bug。
- * 4. 【全屏弹窗修复】强制为考核模块的三个核心弹窗注入 fixed 定位，解决部署到 GitHub Pages 后的样式偏移问题。
+ * 1. 【框选功能增强】在手形工具旁注入【选出官能团】功能，100%精准选中。
+ * 2. 【综合考核修复】测试题采用独立无遮挡图层，强制最高层级。
+ * 3. 【终极报告与弹窗修复】彻底修复 GitHub Pages 环境下的 CSS 冲突与截断问题，确保所有弹窗绝对置顶且完美滚动。
+ * 4. 【证书下载修复】补全跨域/外部环境安全下载策略，补全错题本视图模块。
  */
 class UIManager {
     constructor() {
@@ -43,7 +43,7 @@ class UIManager {
         this.initPanelStructures(); 
         this.bindEvents();
 
-        // 🌟 官能团选择器自动注入器：持续监测框选工具栏，若存在【复制】或【删除】按钮，则自动附加【选出官能团】按钮
+        // 🌟 官能团选择器自动注入器
         setInterval(() => {
             const copyBtn = document.getElementById('btn-marquee-copy');
             if (copyBtn && copyBtn.parentElement && !document.getElementById('btn-marquee-func')) {
@@ -55,7 +55,6 @@ class UIManager {
                 funcBtn.innerHTML = '✨ 选出官能团';
                 funcBtn.title = '智能识别并选中框内的核心官能团';
                 
-                // 继承基础样式并注入高亮金色外观
                 funcBtn.style.padding = copyBtn.style.padding || '8px 15px';
                 funcBtn.style.fontSize = copyBtn.style.fontSize || '1.2em';
                 funcBtn.style.margin = '0 5px';
@@ -70,11 +69,10 @@ class UIManager {
                 funcBtn.onmouseenter = () => { funcBtn.style.transform = 'scale(1.05)'; funcBtn.style.boxShadow = '0 0 15px rgba(255,170,0,0.4)'; };
                 funcBtn.onmouseleave = () => { funcBtn.style.transform = 'scale(1)'; funcBtn.style.boxShadow = 'none'; };
 
-                // 🌟 核心修复：绑定底层级别的点击事件，无视外部事件拦截，100%选中官能团！
                 const self = this;
                 funcBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    e.stopPropagation(); // 阻止弹窗被小手取消
+                    e.stopPropagation(); 
                     
                     const app = window.app;
                     if (!app || !app.sceneManager) return;
@@ -82,7 +80,6 @@ class UIManager {
                     const sm = app.sceneManager;
                     const im = app.interactionManager;
                     
-                    // 1. 底层逻辑寻找官能团原子：定位 Oxygen 及其相连的 Hydrogen
                     let targetAtoms = [];
                     if (sm.atoms) {
                         const oxygens = sm.atoms.filter(a => a.userData && a.userData.type === 'O');
@@ -106,11 +103,9 @@ class UIManager {
                         return;
                     }
 
-                    // 2. 强行覆盖底层引擎的“选中列表”，完美对接原有的复制/删除功能
                     if (im) im.selectedAtoms = [...targetAtoms];
                     if (sm) sm.selectedAtoms = [...targetAtoms];
 
-                    // 3. 视觉反馈：重置所有原子的发光状态，仅高亮官能团
                     if (sm.atoms) {
                         sm.atoms.forEach(a => {
                             if (a.material && a.material.emissive) {
@@ -123,7 +118,6 @@ class UIManager {
                         });
                     }
 
-                    // 4. 触发小手底层的框选包围盒(BoundingBox)更新逻辑
                     if (im && typeof im.updateSelectionBox === 'function') im.updateSelectionBox();
                     if (im && typeof im.updateMarqueeMenuPosition === 'function') im.updateMarqueeMenuPosition();
                     
@@ -267,7 +261,7 @@ class UIManager {
         overlay = document.createElement('div');
         overlay.id = 'help-instructions-overlay';
         overlay.className = this.baseOverlayClass;
-        overlay.style.cssText = 'animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
+        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.9) !important; overflow-y: auto !important; display: block !important; margin: 0 !important; padding: 0 !important;';
 
         const mod1HTML = `
             <div class="help-module-title">🧩 模块一：结构探秘</div>
@@ -340,12 +334,14 @@ class UIManager {
         }
         
         overlay.innerHTML = `
-            <div class="challenge-modal magic-scroll" style="width: 100%; height: 100%; overflow-y: auto; position: relative; padding: 40px 50px; box-sizing: border-box; background: rgba(20,20,30,0.98); color: #fff; animation: none !important; transition: none !important;">
-                <button id="btn-close-help" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10;">❌</button>
-                <h2 style="color: var(--rpg-mana, #00ffcc); font-size: 3.5em; text-align: center; margin-bottom: 20px; text-shadow: 0 0 15px rgba(0,255,204,0.5); font-family: 'Heiti', sans-serif;">📜 ${this.userStats.finalCompleted ? '全阶段操作指南' : '本阶段操作指南'}</h2>
-                ${helpContentHTML}
-                <div style="text-align: center; margin-top: 40px;">
-                    <button id="btn-close-help-bottom" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: #fff; color: #fff; font-family: 'Heiti', sans-serif;">我明白了</button>
+            <div style="width: 100%; min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px 20px; box-sizing: border-box;">
+                <div class="challenge-modal magic-scroll" style="position: relative; width: 100%; max-width: 1000px; background: rgba(20,20,30,0.98); border-radius: 15px; padding: 40px 50px; box-sizing: border-box; text-align: left; box-shadow: 0 0 50px rgba(0,255,204,0.2); color: #fff;">
+                    <button id="btn-close-help" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10;">❌</button>
+                    <h2 style="color: var(--rpg-mana, #00ffcc); font-size: 3.5em; text-align: center; margin-bottom: 20px; text-shadow: 0 0 15px rgba(0,255,204,0.5); font-family: 'Heiti', sans-serif;">📜 ${this.userStats.finalCompleted ? '全阶段操作指南' : '本阶段操作指南'}</h2>
+                    ${helpContentHTML}
+                    <div style="text-align: center; margin-top: 40px;">
+                        <button id="btn-close-help-bottom" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: #fff; color: #fff; font-family: 'Heiti', sans-serif;">我明白了</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -590,32 +586,33 @@ class UIManager {
 
         gallery = document.createElement('div');
         gallery.id = 'final-gallery-overlay'; 
-        gallery.className = this.baseOverlayClass; 
         
-        // 🌟 修复：强行注入 fixed 定位与宽高，无视 GitHub Pages 外部 CSS 干扰
-        gallery.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background: rgba(0,0,0,0.85) !important; animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
+        // 🚀 终极防冲突布局：使用 fixed 置顶与滚动嵌套
+        gallery.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.9) !important; overflow-y: auto !important; display: block !important; margin: 0 !important; padding: 0 !important;';
         
         gallery.innerHTML = `
-            <div class="challenge-modal" style="width: 100%; height: 100%; overflow-y: auto; text-align: center; position: relative; padding: 40px; box-sizing: border-box; animation: none !important; transition: none !important;">
-                <button id="btn-close-final-showcase" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 100000;">❌</button>
-                <div style="text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: min-content;">
-                    <h2 style="color: var(--rpg-gold); font-size: 3.5em; margin-bottom: 40px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); letter-spacing: 5px; font-family: 'Heiti', sans-serif;">🏛️ 炼金成果殿堂</h2>
-                    <div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-bottom: 20px; width: 90%; max-width: 1200px;">
-                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #00ffcc; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0,255,204,0.3);">
-                            <h3 style="color: #00ffcc; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #00ffcc; font-family: 'Heiti', sans-serif;">基础分子 (乙醇)</h3>
-                            <div id="showcase-ethanol" style="width: 260px; height: 260px;"></div>
+            <div style="width: 100%; min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px 20px; box-sizing: border-box;">
+                <div class="challenge-modal" style="position: relative; width: 100%; max-width: 1200px; background: rgba(20,20,30,0.98); border-radius: 15px; padding: 40px; box-sizing: border-box; text-align: center; box-shadow: 0 0 50px rgba(0,255,204,0.2);">
+                    <button id="btn-close-final-showcase" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 100000;">❌</button>
+                    <div style="text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: min-content;">
+                        <h2 style="color: var(--rpg-gold, #ffaa00); font-size: 3.5em; margin-bottom: 40px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); letter-spacing: 5px; font-family: 'Heiti', sans-serif;">🏛️ 炼金成果殿堂</h2>
+                        <div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-bottom: 20px; width: 90%; max-width: 1200px;">
+                            <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #00ffcc; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0,255,204,0.3);">
+                                <h3 style="color: #00ffcc; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #00ffcc; font-family: 'Heiti', sans-serif;">基础分子 (乙醇)</h3>
+                                <div id="showcase-ethanol" style="width: 260px; height: 260px;"></div>
+                            </div>
+                            <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #ffaa00; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(255,170,0,0.3);">
+                                <h3 style="color: #ffaa00; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #ffaa00; font-family: 'Heiti', sans-serif;">置换产物 (乙醇钠)</h3>
+                                <div id="showcase-na" style="width: 260px; height: 260px;"></div>
+                            </div>
+                            <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #ff4444; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(255,68,68,0.3);">
+                                <h3 style="color: #ff4444; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #ff4444; font-family: 'Heiti', sans-serif;">氧化产物 (乙醛)</h3>
+                                <div id="showcase-cu" style="width: 260px; height: 260px;"></div>
+                            </div>
                         </div>
-                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #ffaa00; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(255,170,0,0.3);">
-                            <h3 style="color: #ffaa00; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #ffaa00; font-family: 'Heiti', sans-serif;">置换产物 (乙醇钠)</h3>
-                            <div id="showcase-na" style="width: 260px; height: 260px;"></div>
-                        </div>
-                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #ff4444; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(255,68,68,0.3);">
-                            <h3 style="color: #ff4444; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #ff4444; font-family: 'Heiti', sans-serif;">氧化产物 (乙醛)</h3>
-                            <div id="showcase-cu" style="width: 260px; height: 260px;"></div>
-                        </div>
+                        <p style="color: #ddd; font-size: 1.5em; margin-top: 30px; margin-bottom: 30px; text-shadow: 1px 1px 3px #000; font-family: 'Songti', serif;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
+                        <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold, #ffaa00); color: var(--rpg-gold, #ffaa00); text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 40px; font-family: 'Heiti', sans-serif;">📝 开始最终考核</button>
                     </div>
-                    <p style="color: #ddd; font-size: 1.5em; margin-top: 30px; margin-bottom: 30px; text-shadow: 1px 1px 3px #000; font-family: 'Songti', serif;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
-                    <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 40px; font-family: 'Heiti', sans-serif;">📝 开始最终考核</button>
                 </div>
             </div>
         `;
@@ -656,14 +653,13 @@ class UIManager {
 
         overlay = document.createElement('div');
         overlay.id = 'final-quiz-dynamic-overlay';
-        overlay.className = this.baseOverlayClass; 
         
-        // 🌟 修复：强行注入 fixed 定位与宽高
-        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background: rgba(0,0,0,0.85) !important; animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
+        // 🚀 终极防冲突布局：使用 fixed 置顶与滚动嵌套
+        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.9) !important; overflow-y: auto !important; display: block !important; margin: 0 !important; padding: 0 !important;';
         
         overlay.innerHTML = `
-            <div class="challenge-modal magic-scroll" style="width: 100%; height: 100%; overflow-y: auto; position: relative; box-sizing: border-box; background: rgba(20,20,30,0.98); z-index: 9999999; animation: none !important; transition: none !important;">
-                <div id="dynamic-quiz-content" style="width: 100%; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; box-sizing: border-box; animation: none !important;"></div>
+            <div style="width: 100%; min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px 20px; box-sizing: border-box;">
+                <div id="dynamic-quiz-content" style="width: 100%; max-width: 1200px;"></div>
             </div>
         `;
         document.body.appendChild(overlay);
@@ -758,15 +754,272 @@ class UIManager {
             if (this.finalQuizState.currentIndex < 5) {
                 this.renderFinalQuizQuestion();
             } else {
-                const overlay = document.getElementById('final-quiz-dynamic-overlay');
-                if (overlay) overlay.remove(); 
+                try {
+                    const overlay = document.getElementById('final-quiz-dynamic-overlay');
+                    if (overlay) overlay.remove(); 
 
-                this.userStats.finalQuizScore = this.finalQuizState.correctCount * 20; 
-                this.userStats.finalCompleted = true; 
-                this.saveProgress();
-                this.showEvaluation();
+                    this.userStats.finalQuizScore = this.finalQuizState.correctCount * 20; 
+                    this.userStats.finalCompleted = true; 
+                    this.saveProgress();
+                    this.showEvaluation();
+                } catch(e) {
+                    console.error("切换成绩页面时发生错误", e);
+                }
             }
         };
+    }
+
+    showEvaluation() {
+        ['.action-bar', '.system-menu', '#left-vision-panel', '#ai-trial-panel', '#evaluation-panel'].forEach(selector => {
+            const el = document.querySelector(selector);
+            if(el) el.classList.add('hidden');
+        });
+        
+        document.getElementById('canvas-container')?.classList.add('canvas-shrunk');
+
+        const score1 = 20 + (this.userStats.foundIsomer ? 80 : 0);
+        const score2 = this.userStats.linearStructuresPassed ? 100 : 0;
+        const score3 = (this.userStats.watchedNa ? 50 : 0) + (this.userStats.watchedCu ? 50 : 0);
+        const score4 = (this.userStats.eqSodiumPassed ? 50 : 0) + (this.userStats.eqOxidationPassed ? 50 : 0);
+        const score5 = this.userStats.finalQuizScore !== undefined ? this.userStats.finalQuizScore : 0; 
+
+        const totalScore = score1 + score2 + score3 + score4 + score5; 
+        
+        let rank = 'C'; let rankColor = '#aaaaaa';
+        if (totalScore >= 450) { rank = 'S'; rankColor = '#ffaa00'; }
+        else if (totalScore >= 380) { rank = 'A'; rankColor = '#00ffcc'; }
+        else if (totalScore >= 300) { rank = 'B'; rankColor = '#4488ff'; }
+
+        this.currentRank = { letter: rank, color: rankColor };
+
+        let overlay = document.getElementById('eval-dynamic-overlay');
+        if (overlay) overlay.remove();
+
+        overlay = document.createElement('div');
+        overlay.id = 'eval-dynamic-overlay';
+        
+        // 🚀 终极防冲突布局：彻底解决弹窗过大时顶部被切断无法滚动的问题
+        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.9) !important; overflow-y: auto !important; display: block !important; margin: 0 !important; padding: 0 !important;';
+
+        overlay.innerHTML = `
+            <div style="width: 100%; min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px 20px; box-sizing: border-box;">
+                <div class="challenge-modal" style="position: relative; width: 100%; max-width: 1200px; background: rgba(20,20,30,0.98); border-radius: 20px; padding: 50px; box-sizing: border-box; text-align: center; box-shadow: 0 0 50px rgba(0,255,204,0.15);">
+                    <button id="btn-close-eval-dynamic" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10000; cursor: pointer;">❌</button>
+                    
+                    <h2 style="color: var(--rpg-gold, #ffaa00); font-size: 3.5em; margin-bottom: 10px; margin-top: 10px; text-shadow: 0 0 20px rgba(255,215,0,0.5); font-family: 'Heiti', sans-serif;">🏆 炼金宗师终极报告</h2>
+                    <p style="color: #fff; font-size: 1.8em; margin-bottom: 30px; font-family: 'Songti', serif;">经过严密的综合分析，您的化学探索总分为 <strong style="color:#00ffcc; font-size:1.5em; font-family: 'Heiti', sans-serif;">${totalScore}</strong> 分！</p>
+
+                    <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; gap: 80px; width: 100%; margin-bottom: 40px;">
+                        
+                        <div style="text-align: center; background: rgba(0,0,0,0.6); padding: 40px 50px; border-radius: 20px; border: 2px solid ${rankColor}; box-shadow: 0 0 30px ${rankColor}; width: 350px; flex-shrink: 0;">
+                            <div style="font-size: 1.8em; color: #fff; margin-bottom: 15px; font-family: 'Heiti', sans-serif;">综合评分: <span style="color:var(--rpg-mana, #00ffcc); font-weight:bold; font-size: 1.5em;">${totalScore}</span> / 500</div>
+                            <div style="font-size: 2em; color: #fff; margin-bottom: 10px; margin-top: 25px; font-family: 'Heiti', sans-serif;">最终评级</div>
+                            <div style="font-size: 8em; font-weight: bold; font-style: italic; font-family: 'Courier New', monospace; color: ${rankColor}; text-shadow: 0 0 20px ${rankColor}; line-height: 1;">${rank}</div>
+                        </div>
+
+                        <div style="width: 450px; height: 450px; flex-shrink: 0; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); border-radius: 50%; box-shadow: inset 0 0 30px rgba(0,255,204,0.1);">
+                            <canvas id="radarChart-dynamic" width="450" height="450" style="max-width: 100%; max-height: 100%;"></canvas>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;">
+                        <button id="btn-wrong-questions-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: #ff4444; color: #ff4444; box-shadow: 0 0 20px rgba(255, 68, 68, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">📝 查看错题解析</button>
+                        <button id="btn-download-eval-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: #ffaa00; color: #ffaa00; box-shadow: 0 0 20px rgba(255, 170, 0, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">⬇️ 下载成就证书</button>
+                        <button id="btn-return-home-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: #00ffcc; color: #00ffcc; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">🏠 重新开始探索</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        this.renderRadarChart([score1, score2, score3, score4, score5], ['架构搭建', '闯关挑战', '微观动画', '反应模拟', '综合大考']);
+
+        const self = this;
+        document.getElementById('btn-close-eval-dynamic').addEventListener('click', () => {
+            overlay.remove(); 
+            document.querySelector('.system-menu')?.classList.remove('hidden');
+            document.querySelector('.action-bar')?.classList.remove('hidden');
+            document.getElementById('canvas-container')?.classList.remove('canvas-shrunk');
+        });
+        
+        document.getElementById('btn-wrong-questions-dynamic').addEventListener('click', () => self.showWrongQuestions());
+        document.getElementById('btn-download-eval-dynamic').addEventListener('click', () => self.downloadEvaluation());
+        
+        document.getElementById('btn-return-home-dynamic').addEventListener('click', () => {
+            overlay.remove(); 
+            document.getElementById('final-quiz-dynamic-overlay')?.remove(); 
+            
+            self.switchModule(1);
+            if (window.app && window.app.sceneManager) window.app.sceneManager.clearAll();
+
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach((btn, index) => {
+                if (index > 0) btn.classList.add('locked');
+                btn.classList.remove('active');
+            });
+            if (navBtns[0]) navBtns[0].classList.add('active');
+        });
+    }
+
+    // 🚀 补全丢失的查看错题方法（防止点击报错且提供完美排版）
+    showWrongQuestions() {
+        let overlay = document.getElementById('wrong-questions-overlay');
+        if (overlay) overlay.remove();
+
+        overlay = document.createElement('div');
+        overlay.id = 'wrong-questions-overlay';
+        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.95) !important; overflow-y: auto !important; display: block !important; margin: 0 !important; padding: 0 !important;';
+
+        let contentHTML = '<h2 style="color: #ffaa00; font-size: 3.5em; margin-bottom: 30px; font-family: \'Heiti\', sans-serif;">📝 错题解析档案</h2>';
+
+        if (!this.userStats.wrongQuestions || this.userStats.wrongQuestions.length === 0) {
+            contentHTML += '<p style="color:#00ffcc; font-size:2.5em; margin: 50px 0;">太棒了！本次考核全对，无错题记录。</p>';
+        } else {
+            contentHTML += '<div style="text-align: left; width: 100%;">';
+            this.userStats.wrongQuestions.forEach((q, i) => {
+                contentHTML += `<div style="background: rgba(0,0,0,0.6); padding: 25px; border-radius: 12px; margin-bottom: 20px; font-size: 1.8em; border-left: 6px solid #ff4444; color: #fff; line-height: 1.6;">
+                    ${q.explanation}
+                </div>`;
+            });
+            contentHTML += '</div>';
+        }
+
+        overlay.innerHTML = `
+            <div style="width: 100%; min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px 20px; box-sizing: border-box;">
+                <div class="challenge-modal" style="position: relative; width: 100%; max-width: 1000px; background: rgba(20,25,35,0.98); border-radius: 16px; border: 2px solid #ffaa00; padding: 50px; box-sizing: border-box; text-align: center; box-shadow: 0 0 40px rgba(255,170,0,0.3);">
+                    <button id="btn-close-wq" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10000; cursor: pointer;">❌</button>
+                    ${contentHTML}
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        document.getElementById('btn-close-wq').onclick = () => overlay.remove();
+    }
+
+    renderRadarChart(dataArray, labels = ['架构搭建', '闯关挑战', '微观动画', '反应模拟', '综合大考']) {
+        const ctxEl = document.getElementById('radarChart-dynamic') || document.getElementById('radarChart');
+        if(!ctxEl) return;
+        if(typeof Chart === 'undefined') {
+            console.warn("Chart.js 库未加载，无法渲染雷达图。");
+            return;
+        }
+        const ctx = ctxEl.getContext('2d');
+        if(window.magicRadarChart) window.magicRadarChart.destroy();
+        Chart.defaults.color = '#fff'; Chart.defaults.font.family = "'Courier New', monospace"; Chart.defaults.font.size = 18;
+        window.magicRadarChart = new Chart(ctx, {
+            type: 'radar',
+            data: { labels: labels, datasets: [{ data: dataArray, backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#ffd700', borderWidth: 3, pointBackgroundColor: '#fff', pointBorderColor: '#ffd700', pointRadius: 5 }] },
+            options: { scales: { r: { angleLines: { color: 'rgba(255,255,255,0.4)' }, grid: { color: 'rgba(255,255,255,0.2)' }, pointLabels: { color: '#00ffcc', font: { size: 20, weight: 'bold' } }, ticks: { display: false, min: 0, max: 100 } } }, plugins: { legend: { display: false } } }
+        });
+    }
+
+    downloadEvaluation() {
+        const canvas = document.getElementById('radarChart-dynamic') || document.getElementById('radarChart');
+        if (!canvas) { this.showMagicNotice("失败", "图表未找到"); return; }
+        
+        const wrongQs = this.userStats.wrongQuestions || [];
+        
+        const ctxMeasure = document.createElement('canvas').getContext('2d');
+        ctxMeasure.font = '22px "Songti", "SimSun", serif';
+        const maxWidth = 680; 
+        const lineHeight = 35;
+        let dynamicWrongHeight = 0;
+
+        const wrappedTextLines = []; 
+
+        if (wrongQs.length > 0) {
+            dynamicWrongHeight += 80; 
+            wrongQs.forEach((wq, idx) => {
+                let plainText = wq.explanation.replace(/<[^>]+>/g, '').trim(); 
+                let fullStr = `Q${idx + 1}: ${plainText}`;
+                
+                let chars = fullStr.split('');
+                let line = '';
+                let questionLines = [];
+                
+                for (let n = 0; n < chars.length; n++) {
+                    let testLine = line + chars[n];
+                    let metrics = ctxMeasure.measureText(testLine);
+                    if (metrics.width > maxWidth && n > 0) {
+                        questionLines.push(line);
+                        line = chars[n];
+                    } else {
+                        line = testLine;
+                    }
+                }
+                questionLines.push(line); 
+                wrappedTextLines.push({ lines: questionLines });
+                
+                dynamicWrongHeight += (questionLines.length * lineHeight) + 40; 
+            });
+            dynamicWrongHeight += 60; 
+        }
+
+        const baseHeight = 900; 
+        const totalHeight = baseHeight + dynamicWrongHeight;
+
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = 800; tempCanvas.height = totalHeight;
+        const ctx = tempCanvas.getContext('2d');
+        
+        const grad = ctx.createLinearGradient(0, 0, 0, totalHeight);
+        grad.addColorStop(0, '#101420'); grad.addColorStop(1, '#080a10');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 800, totalHeight);
+        
+        ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 6; ctx.strokeRect(20, 20, 760, totalHeight - 40);
+        ctx.strokeStyle = 'rgba(0, 255, 204, 0.3)'; ctx.lineWidth = 2; ctx.strokeRect(30, 30, 740, totalHeight - 60);
+        
+        ctx.fillStyle = '#00ffcc'; 
+        ctx.font = 'bold 48px "Heiti", "SimHei", sans-serif'; 
+        ctx.textAlign = 'center'; 
+        ctx.shadowColor = 'rgba(0, 255, 204, 0.8)'; ctx.shadowBlur = 15;
+        ctx.fillText('炼金成就证书', 400, 90);
+        ctx.shadowBlur = 0; 
+        
+        if (this.currentRank) {
+            ctx.fillStyle = this.currentRank.color;
+            ctx.font = 'bold 100px "Arial"';
+            ctx.fillText(this.currentRank.letter, 650, 150); 
+            ctx.font = 'bold 24px "Heiti", "SimHei", sans-serif';
+            ctx.fillStyle = '#ffffff'; ctx.fillText('综合评级', 650, 60);
+        }
+
+        ctx.beginPath(); ctx.arc(400, 450, 280, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fill();
+        ctx.drawImage(canvas, 100, 150, 600, 600);
+        
+        ctx.textAlign = 'left';
+        if (wrongQs.length > 0) {
+            ctx.fillStyle = '#ffaa00'; ctx.font = 'bold 30px "Heiti", "SimHei", sans-serif'; 
+            ctx.fillText('【错题档案归纳】', 60, 820);
+            
+            ctx.fillStyle = '#dddddd'; ctx.font = '22px "Songti", "SimSun", serif'; 
+            let currentY = 870;
+            
+            wrappedTextLines.forEach((wqData) => {
+                wqData.lines.forEach(lineText => { ctx.fillText(lineText, 60, currentY); currentY += lineHeight; });
+                currentY += 20; 
+            });
+            
+            ctx.textAlign = 'center'; ctx.fillStyle = '#aaaaaa'; ctx.font = '18px "Heiti", "SimHei", sans-serif'; 
+            ctx.fillText(`生成时间: ${new Date().toLocaleString()}`, 400, totalHeight - 50);
+        } else {
+            ctx.textAlign = 'center'; ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 34px "Heiti", "SimHei", sans-serif'; 
+            ctx.fillText('干得漂亮！本次大考满分通关，无错题记录。', 400, 830);
+            ctx.fillStyle = '#aaaaaa'; ctx.font = '18px "Heiti", "SimHei", sans-serif'; 
+            ctx.fillText(`生成时间: ${new Date().toLocaleString()}`, 400, 880);
+        }
+
+        const link = document.createElement('a'); 
+        link.download = `成就证书_${new Date().getTime()}.png`;
+        link.href = tempCanvas.toDataURL('image/png', 1.0); 
+        
+        // 🚀 修复证书无法下载：必须将标签插入 DOM 树中再点击，兼容各种跨域环境
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        this.showMagicNotice("下载成功", "高定证书（含完整错题记录）已保存到本地！");
     }
 
     queueEquationMinigame(type) {
@@ -1513,218 +1766,6 @@ class UIManager {
             document.getElementById('ai-content').innerHTML = `<p style="font-size: 1.8em; color: var(--rpg-mana); font-family: 'Heiti', sans-serif;">正在生成随堂测试题...</p>`;
             document.getElementById('btn-close-ai')?.classList.remove('hidden');
         }
-    }
-
-    showEvaluation() {
-        ['.action-bar', '.system-menu', '#left-vision-panel', '#ai-trial-panel', '#evaluation-panel'].forEach(selector => {
-            const el = document.querySelector(selector);
-            if(el) el.classList.add('hidden');
-        });
-        
-        document.getElementById('canvas-container')?.classList.add('canvas-shrunk');
-
-        const score1 = 20 + (this.userStats.foundIsomer ? 80 : 0);
-        const score2 = this.userStats.linearStructuresPassed ? 100 : 0;
-        const score3 = (this.userStats.watchedNa ? 50 : 0) + (this.userStats.watchedCu ? 50 : 0);
-        const score4 = (this.userStats.eqSodiumPassed ? 50 : 0) + (this.userStats.eqOxidationPassed ? 50 : 0);
-        const score5 = this.userStats.finalQuizScore !== undefined ? this.userStats.finalQuizScore : 0; 
-
-        const totalScore = score1 + score2 + score3 + score4 + score5; 
-        
-        let rank = 'C'; let rankColor = '#aaaaaa';
-        if (totalScore >= 450) { rank = 'S'; rankColor = '#ffaa00'; }
-        else if (totalScore >= 380) { rank = 'A'; rankColor = '#00ffcc'; }
-        else if (totalScore >= 300) { rank = 'B'; rankColor = '#4488ff'; }
-
-        this.currentRank = { letter: rank, color: rankColor };
-
-        let overlay = document.getElementById('eval-dynamic-overlay');
-        if (overlay) overlay.remove();
-
-        overlay = document.createElement('div');
-        overlay.id = 'eval-dynamic-overlay';
-        overlay.className = this.baseOverlayClass;
-        
-        // 🌟 修复：强行注入 fixed 定位与宽高，确保成绩雷达图与弹窗全局居中
-        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 9999999 !important; background: rgba(0,0,0,0.85) !important; animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
-
-        overlay.innerHTML = `
-            <div class="challenge-modal magic-scroll" style="width: 100%; height: 100%; overflow-y: auto; position: relative; padding: 20px 40px; box-sizing: border-box; background: rgba(20,20,30,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                
-                <button id="btn-close-eval-dynamic" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10000; cursor: pointer;">❌</button>
-                
-                <h2 style="color: var(--rpg-gold, #ffaa00); font-size: 3.5em; margin-bottom: 10px; margin-top: 10px; text-shadow: 0 0 20px rgba(255,215,0,0.5); font-family: 'Heiti', sans-serif;">🏆 炼金宗师终极报告</h2>
-                <p style="color: #fff; font-size: 1.8em; margin-bottom: 30px; font-family: 'Songti', serif;">经过严密的综合分析，您的化学探索总分为 <strong style="color:#00ffcc; font-size:1.5em; font-family: 'Heiti', sans-serif;">${totalScore}</strong> 分！</p>
-
-                <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; gap: 80px; width: 100%; max-width: 1200px; margin-bottom: 40px;">
-                    
-                    <div style="text-align: center; background: rgba(0,0,0,0.6); padding: 40px 50px; border-radius: 20px; border: 2px solid ${rankColor}; box-shadow: 0 0 30px ${rankColor}; width: 350px; flex-shrink: 0;">
-                        <div style="font-size: 1.8em; color: #fff; margin-bottom: 15px; font-family: 'Heiti', sans-serif;">综合评分: <span style="color:var(--rpg-mana, #00ffcc); font-weight:bold; font-size: 1.5em;">${totalScore}</span> / 500</div>
-                        <div style="font-size: 2em; color: #fff; margin-bottom: 10px; margin-top: 25px; font-family: 'Heiti', sans-serif;">最终评级</div>
-                        <div style="font-size: 8em; font-weight: bold; font-style: italic; font-family: 'Courier New', monospace; color: ${rankColor}; text-shadow: 0 0 20px ${rankColor}; line-height: 1;">${rank}</div>
-                    </div>
-
-                    <div style="width: 450px; height: 450px; flex-shrink: 0; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); border-radius: 50%; box-shadow: inset 0 0 30px rgba(0,255,204,0.1);">
-                        <canvas id="radarChart-dynamic" width="450" height="450" style="max-width: 100%; max-height: 100%;"></canvas>
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;">
-                    <button id="btn-wrong-questions-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: #ff4444; color: #ff4444; box-shadow: 0 0 20px rgba(255, 68, 68, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">📝 查看错题解析</button>
-                    <button id="btn-download-eval-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: #ffaa00; color: #ffaa00; box-shadow: 0 0 20px rgba(255, 170, 0, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">⬇️ 下载成就证书</button>
-                    <button id="btn-return-home-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: #00ffcc; color: #00ffcc; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">🏠 重新开始探索</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-
-        this.renderRadarChart([score1, score2, score3, score4, score5], ['架构搭建', '闯关挑战', '微观动画', '反应模拟', '综合大考']);
-
-        const self = this;
-        document.getElementById('btn-close-eval-dynamic').addEventListener('click', () => {
-            overlay.remove(); 
-            document.querySelector('.system-menu')?.classList.remove('hidden');
-            document.querySelector('.action-bar')?.classList.remove('hidden');
-            document.getElementById('canvas-container')?.classList.remove('canvas-shrunk');
-        });
-        
-        document.getElementById('btn-wrong-questions-dynamic').addEventListener('click', () => self.showWrongQuestions());
-        document.getElementById('btn-download-eval-dynamic').addEventListener('click', () => self.downloadEvaluation());
-        
-        document.getElementById('btn-return-home-dynamic').addEventListener('click', () => {
-            overlay.remove(); 
-            document.getElementById('final-quiz-dynamic-overlay')?.remove(); 
-            
-            self.switchModule(1);
-            if (window.app && window.app.sceneManager) window.app.sceneManager.clearAll();
-
-            const navBtns = document.querySelectorAll('.nav-btn');
-            navBtns.forEach((btn, index) => {
-                if (index > 0) btn.classList.add('locked');
-                btn.classList.remove('active');
-            });
-            if (navBtns[0]) navBtns[0].classList.add('active');
-        });
-    }
-
-    renderRadarChart(dataArray, labels = ['架构搭建', '闯关挑战', '微观动画', '反应模拟', '综合大考']) {
-        const ctxEl = document.getElementById('radarChart-dynamic') || document.getElementById('radarChart');
-        if(!ctxEl) return;
-        if(typeof Chart === 'undefined') {
-            console.warn("Chart.js 库未加载，无法渲染雷达图。");
-            return;
-        }
-        const ctx = ctxEl.getContext('2d');
-        if(window.magicRadarChart) window.magicRadarChart.destroy();
-        Chart.defaults.color = '#fff'; Chart.defaults.font.family = "'Courier New', monospace"; Chart.defaults.font.size = 18;
-        window.magicRadarChart = new Chart(ctx, {
-            type: 'radar',
-            data: { labels: labels, datasets: [{ data: dataArray, backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#ffd700', borderWidth: 3, pointBackgroundColor: '#fff', pointBorderColor: '#ffd700', pointRadius: 5 }] },
-            options: { scales: { r: { angleLines: { color: 'rgba(255,255,255,0.4)' }, grid: { color: 'rgba(255,255,255,0.2)' }, pointLabels: { color: '#00ffcc', font: { size: 20, weight: 'bold' } }, ticks: { display: false, min: 0, max: 100 } } }, plugins: { legend: { display: false } } }
-        });
-    }
-
-    downloadEvaluation() {
-        const canvas = document.getElementById('radarChart-dynamic') || document.getElementById('radarChart');
-        if (!canvas) { this.showMagicNotice("失败", "图表未找到"); return; }
-        
-        const wrongQs = this.userStats.wrongQuestions || [];
-        
-        const ctxMeasure = document.createElement('canvas').getContext('2d');
-        ctxMeasure.font = '22px "Songti", "SimSun", serif';
-        const maxWidth = 680; 
-        const lineHeight = 35;
-        let dynamicWrongHeight = 0;
-
-        const wrappedTextLines = []; 
-
-        if (wrongQs.length > 0) {
-            dynamicWrongHeight += 80; 
-            wrongQs.forEach((wq, idx) => {
-                let plainText = wq.explanation.replace(/<[^>]+>/g, '').trim(); 
-                let fullStr = `Q${idx + 1}: ${plainText}`;
-                
-                let chars = fullStr.split('');
-                let line = '';
-                let questionLines = [];
-                
-                for (let n = 0; n < chars.length; n++) {
-                    let testLine = line + chars[n];
-                    let metrics = ctxMeasure.measureText(testLine);
-                    if (metrics.width > maxWidth && n > 0) {
-                        questionLines.push(line);
-                        line = chars[n];
-                    } else {
-                        line = testLine;
-                    }
-                }
-                questionLines.push(line); 
-                wrappedTextLines.push({ lines: questionLines });
-                
-                dynamicWrongHeight += (questionLines.length * lineHeight) + 40; 
-            });
-            dynamicWrongHeight += 60; 
-        }
-
-        const baseHeight = 900; 
-        const totalHeight = baseHeight + dynamicWrongHeight;
-
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = 800; tempCanvas.height = totalHeight;
-        const ctx = tempCanvas.getContext('2d');
-        
-        const grad = ctx.createLinearGradient(0, 0, 0, totalHeight);
-        grad.addColorStop(0, '#101420'); grad.addColorStop(1, '#080a10');
-        ctx.fillStyle = grad; ctx.fillRect(0, 0, 800, totalHeight);
-        
-        ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 6; ctx.strokeRect(20, 20, 760, totalHeight - 40);
-        ctx.strokeStyle = 'rgba(0, 255, 204, 0.3)'; ctx.lineWidth = 2; ctx.strokeRect(30, 30, 740, totalHeight - 60);
-        
-        ctx.fillStyle = '#00ffcc'; 
-        ctx.font = 'bold 48px "Heiti", "SimHei", sans-serif'; 
-        ctx.textAlign = 'center'; 
-        ctx.shadowColor = 'rgba(0, 255, 204, 0.8)'; ctx.shadowBlur = 15;
-        ctx.fillText('炼金成就证书', 400, 90);
-        ctx.shadowBlur = 0; 
-        
-        if (this.currentRank) {
-            ctx.fillStyle = this.currentRank.color;
-            ctx.font = 'bold 100px "Arial"';
-            ctx.fillText(this.currentRank.letter, 650, 150); 
-            ctx.font = 'bold 24px "Heiti", "SimHei", sans-serif';
-            ctx.fillStyle = '#ffffff'; ctx.fillText('综合评级', 650, 60);
-        }
-
-        ctx.beginPath(); ctx.arc(400, 450, 280, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fill();
-        ctx.drawImage(canvas, 100, 150, 600, 600);
-        
-        ctx.textAlign = 'left';
-        if (wrongQs.length > 0) {
-            ctx.fillStyle = '#ffaa00'; ctx.font = 'bold 30px "Heiti", "SimHei", sans-serif'; 
-            ctx.fillText('【错题档案归纳】', 60, 820);
-            
-            ctx.fillStyle = '#dddddd'; ctx.font = '22px "Songti", "SimSun", serif'; 
-            let currentY = 870;
-            
-            wrappedTextLines.forEach((wqData) => {
-                wqData.lines.forEach(lineText => { ctx.fillText(lineText, 60, currentY); currentY += lineHeight; });
-                currentY += 20; 
-            });
-            
-            ctx.textAlign = 'center'; ctx.fillStyle = '#aaaaaa'; ctx.font = '18px "Heiti", "SimHei", sans-serif'; 
-            ctx.fillText(`生成时间: ${new Date().toLocaleString()}`, 400, totalHeight - 50);
-        } else {
-            ctx.textAlign = 'center'; ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 34px "Heiti", "SimHei", sans-serif'; 
-            ctx.fillText('干得漂亮！本次大考满分通关，无错题记录。', 400, 830);
-            ctx.fillStyle = '#aaaaaa'; ctx.font = '18px "Heiti", "SimHei", sans-serif'; 
-            ctx.fillText(`生成时间: ${new Date().toLocaleString()}`, 400, 880);
-        }
-
-        const link = document.createElement('a'); 
-        link.download = `成就证书_${new Date().getTime()}.png`;
-        link.href = tempCanvas.toDataURL('image/png', 1.0); 
-        link.click();
-        this.showMagicNotice("下载成功", "高定证书（含完整错题记录）已保存到本地！");
     }
 
     hideMain3DView() {
