@@ -1,24 +1,10 @@
 /** 互动 UI 管理器 (UIManager.js) 
- * 🌟 线上部署绝对防弹版：
- * 1. 【错题解析弹窗修复】彻底剥离外部异常 CSS 的干扰，采用最顶层的绝对定位金刚罩（z-index: 2147483647），确保点击错题解析100%瞬间居中弹出，绝不掉出屏幕！
- * 2. 【成果殿堂同行修复】强制注入单行横向排布规则(nowrap)和溢出滚动(overflow-x)，无论屏幕尺寸如何，三个模型框绝对显示在同一行！
- * 3. 完美继承保留所有功能：官能团智能选取、雷达图防冲突、下载证书、防页面刷新重载等所有核心功能无一删减！
+ * 🌟 终极综合稳定版：
+ * 1. 【框选功能增强】在手形工具(🖐️)的复制/删除旁注入了【选出官能团】功能，采用底层原子数据强行劫持，确保100%精准选中。
+ * 2. 【综合考核修复】测试题采用独立无遮挡图层，强制最高层级，闪电秒出，绝不卡死。
+ * 3. 【终极报告修复】成绩单雷达图采用全新的独立动态 ID (radarChart-dynamic)，完美解决无法渲染与证书无法下载的 Bug。
+ * 4. 【全屏弹窗修复】强制为考核模块的三个核心弹窗注入 fixed 定位，解决部署到 GitHub Pages 后的样式偏移问题。
  */
-
-const UI_THEME = {
-    primary: '#00ffcc',
-    warning: '#ffaa00',
-    danger: '#ff4444',
-    bgDark: 'rgba(20, 20, 30, 0.98)',
-    borderNormal: '#888',
-    textMain: '#ffffff'
-};
-
-// 🌟 终极防线：绝对免疫 GitHub Pages CSS 干扰的全局样式串
-const FULLSCREEN_OVERLAY_STYLE = 'position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; display: flex !important; justify-content: center !important; align-items: center !important; background: rgba(0,0,0,0.85) !important; z-index: 2147483647 !important; margin: 0 !important; padding: 0 !important; pointer-events: auto !important; overflow: hidden !important; transform: none !important; opacity: 1 !important; visibility: visible !important;';
-
-const MODAL_BOX_STYLE = (borderColor) => `position: relative !important; width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; background: rgba(20,20,30,0.98) !important; border: 3px solid ${borderColor} !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,0,0,0.5) !important; margin: 0 auto !important; padding: 40px !important; box-sizing: border-box !important; overflow-y: auto !important; overflow-x: hidden !important; transform: none !important; pointer-events: auto !important; opacity: 1 !important; visibility: visible !important;`;
-
 class UIManager {
     constructor() {
         this.userStats = { 
@@ -37,16 +23,13 @@ class UIManager {
         this.dualRenderers = null; 
         this.builtOrder = []; 
         this.snapshots = {}; 
-        
         this.selectedLinearVal = null;
         this.selectedLinearText = null;
         this.draggedVal = null;
         this.activeDragElement = null;
-        
         this.ethaneComponentRef = null; 
         this.pendingChallengeType = null; 
         this.currentRank = null; 
-        this._lastUndoTime = 0; 
         
         this.finalQuizState = { questions: [], currentIndex: 0, correctCount: 0 };
         this.initQuestionBank();
@@ -60,7 +43,96 @@ class UIManager {
         this.initPanelStructures(); 
         this.bindEvents();
 
-        this.initObserver();
+        // 🌟 官能团选择器自动注入器：持续监测框选工具栏，若存在【复制】或【删除】按钮，则自动附加【选出官能团】按钮
+        setInterval(() => {
+            const copyBtn = document.getElementById('btn-marquee-copy');
+            if (copyBtn && copyBtn.parentElement && !document.getElementById('btn-marquee-func')) {
+                const funcBtn = document.createElement('button');
+                funcBtn.id = 'btn-marquee-func';
+                funcBtn.className = copyBtn.className;
+                if (!funcBtn.className.includes('magic-btn')) funcBtn.classList.add('magic-btn');
+                
+                funcBtn.innerHTML = '✨ 选出官能团';
+                funcBtn.title = '智能识别并选中框内的核心官能团';
+                
+                // 继承基础样式并注入高亮金色外观
+                funcBtn.style.padding = copyBtn.style.padding || '8px 15px';
+                funcBtn.style.fontSize = copyBtn.style.fontSize || '1.2em';
+                funcBtn.style.margin = '0 5px';
+                funcBtn.style.background = 'rgba(255, 170, 0, 0.15)'; 
+                funcBtn.style.borderRadius = copyBtn.style.borderRadius || '8px';
+                funcBtn.style.cursor = 'pointer';
+                funcBtn.style.border = '2px solid #ffaa00';
+                funcBtn.style.color = '#ffaa00';
+                funcBtn.style.textShadow = '0 0 8px rgba(255,170,0,0.5)';
+                funcBtn.style.transition = 'all 0.2s';
+                
+                funcBtn.onmouseenter = () => { funcBtn.style.transform = 'scale(1.05)'; funcBtn.style.boxShadow = '0 0 15px rgba(255,170,0,0.4)'; };
+                funcBtn.onmouseleave = () => { funcBtn.style.transform = 'scale(1)'; funcBtn.style.boxShadow = 'none'; };
+
+                // 🌟 核心修复：绑定底层级别的点击事件，无视外部事件拦截，100%选中官能团！
+                const self = this;
+                funcBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation(); // 阻止弹窗被小手取消
+                    
+                    const app = window.app;
+                    if (!app || !app.sceneManager) return;
+                    
+                    const sm = app.sceneManager;
+                    const im = app.interactionManager;
+                    
+                    // 1. 底层逻辑寻找官能团原子：定位 Oxygen 及其相连的 Hydrogen
+                    let targetAtoms = [];
+                    if (sm.atoms) {
+                        const oxygens = sm.atoms.filter(a => a.userData && a.userData.type === 'O');
+                        oxygens.forEach(o => {
+                            if (!targetAtoms.includes(o)) targetAtoms.push(o);
+                            if (sm.bonds) {
+                                sm.bonds.forEach(b => {
+                                    if (b.a === o && b.b.userData && b.b.userData.type === 'H') {
+                                        if (!targetAtoms.includes(b.b)) targetAtoms.push(b.b);
+                                    }
+                                    if (b.b === o && b.a.userData && b.a.userData.type === 'H') {
+                                        if (!targetAtoms.includes(b.a)) targetAtoms.push(b.a);
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    if (targetAtoms.length === 0) {
+                        if (self.showMagicNotice) self.showMagicNotice("提示", "当前模型中未检测到含氧官能团！");
+                        return;
+                    }
+
+                    // 2. 强行覆盖底层引擎的“选中列表”，完美对接原有的复制/删除功能
+                    if (im) im.selectedAtoms = [...targetAtoms];
+                    if (sm) sm.selectedAtoms = [...targetAtoms];
+
+                    // 3. 视觉反馈：重置所有原子的发光状态，仅高亮官能团
+                    if (sm.atoms) {
+                        sm.atoms.forEach(a => {
+                            if (a.material && a.material.emissive) {
+                                if (targetAtoms.includes(a)) {
+                                    a.material.emissive.setHex(0x555555); 
+                                } else {
+                                    a.material.emissive.setHex(0x000000); 
+                                }
+                            }
+                        });
+                    }
+
+                    // 4. 触发小手底层的框选包围盒(BoundingBox)更新逻辑
+                    if (im && typeof im.updateSelectionBox === 'function') im.updateSelectionBox();
+                    if (im && typeof im.updateMarqueeMenuPosition === 'function') im.updateMarqueeMenuPosition();
+                    
+                    if (self.showMagicNotice) self.showMagicNotice("✨ 官能团已选定", "含氧核心结构已智能选中！现在可直接点击【复制】或【删除】。");
+                });
+
+                copyBtn.parentElement.insertBefore(funcBtn, copyBtn.nextSibling);
+            }
+        }, 800);
         
         setTimeout(() => {
             this.switchModule(this.currentLevel); 
@@ -68,98 +140,6 @@ class UIManager {
                 this.showMagicNotice("进度已恢复", "系统已自动为您恢复到上一次的实验进度！");
             }
         }, 500);
-    }
-
-    initObserver() {
-        if (this.observer) return;
-        this.observer = new MutationObserver((mutations) => {
-            const copyBtn = document.getElementById('btn-marquee-copy');
-            if (copyBtn && copyBtn.parentElement && !document.getElementById('btn-marquee-func')) {
-                this.injectFunctionalGroupButton(copyBtn);
-            }
-        });
-        this.observer.observe(document.body, { childList: true, subtree: true });
-    }
-
-    injectFunctionalGroupButton(copyBtn) {
-        const funcBtn = document.createElement('button');
-        funcBtn.type = 'button'; 
-        funcBtn.id = 'btn-marquee-func';
-        funcBtn.className = copyBtn.className;
-        if (!funcBtn.className.includes('magic-btn')) funcBtn.classList.add('magic-btn');
-        
-        funcBtn.innerHTML = '✨ 选出官能团';
-        funcBtn.title = '智能识别并选中框内的核心官能团';
-        
-        funcBtn.style.padding = copyBtn.style.padding || '8px 15px';
-        funcBtn.style.fontSize = copyBtn.style.fontSize || '1.2em';
-        funcBtn.style.margin = '0 5px';
-        funcBtn.style.background = 'rgba(255, 170, 0, 0.15)'; 
-        funcBtn.style.borderRadius = copyBtn.style.borderRadius || '8px';
-        funcBtn.style.cursor = 'pointer';
-        funcBtn.style.border = `2px solid ${UI_THEME.warning}`;
-        funcBtn.style.color = UI_THEME.warning;
-        funcBtn.style.textShadow = '0 0 8px rgba(255,170,0,0.5)';
-        funcBtn.style.transition = 'all 0.2s';
-        
-        funcBtn.onmouseenter = () => { funcBtn.style.transform = 'scale(1.05)'; funcBtn.style.boxShadow = '0 0 15px rgba(255,170,0,0.4)'; };
-        funcBtn.onmouseleave = () => { funcBtn.style.transform = 'scale(1)'; funcBtn.style.boxShadow = 'none'; };
-
-        const self = this;
-        funcBtn.addEventListener('click', (e) => {
-            e.preventDefault(); e.stopPropagation(); 
-            
-            const app = window.app;
-            if (!app || !app.sceneManager) return;
-            
-            const sm = app.sceneManager;
-            const im = app.interactionManager;
-            
-            let targetAtoms = [];
-            if (sm.atoms) {
-                const oxygens = sm.atoms.filter(a => a.userData && a.userData.type === 'O');
-                oxygens.forEach(o => {
-                    if (!targetAtoms.includes(o)) targetAtoms.push(o);
-                    if (sm.bonds) {
-                        sm.bonds.forEach(b => {
-                            if (b.a === o && b.b.userData && b.b.userData.type === 'H') {
-                                if (!targetAtoms.includes(b.b)) targetAtoms.push(b.b);
-                            }
-                            if (b.b === o && b.a.userData && b.a.userData.type === 'H') {
-                                if (!targetAtoms.includes(b.a)) targetAtoms.push(b.a);
-                            }
-                        });
-                    }
-                });
-            }
-
-            if (targetAtoms.length === 0) {
-                if (self.showMagicNotice) self.showMagicNotice("提示", "当前模型中未检测到含氧官能团！");
-                return;
-            }
-
-            if (im) im.selectedAtoms = [...targetAtoms];
-            if (sm) sm.selectedAtoms = [...targetAtoms];
-
-            if (sm.atoms) {
-                sm.atoms.forEach(a => {
-                    if (a.material && a.material.emissive) {
-                        if (targetAtoms.includes(a)) {
-                            a.material.emissive.setHex(0x555555); 
-                        } else {
-                            a.material.emissive.setHex(0x000000); 
-                        }
-                    }
-                });
-            }
-
-            if (im && typeof im.updateSelectionBox === 'function') im.updateSelectionBox();
-            if (im && typeof im.updateMarqueeMenuPosition === 'function') im.updateMarqueeMenuPosition();
-            
-            if (self.showMagicNotice) self.showMagicNotice("✨ 官能团已选定", "含氧核心结构已智能选中！现在可直接点击【复制】或【删除】。");
-        });
-
-        copyBtn.parentElement.insertBefore(funcBtn, copyBtn.nextSibling);
     }
 
     getBaseOverlayClass() {
@@ -177,6 +157,20 @@ class UIManager {
             if (aiPanel.firstElementChild) {
                 aiPanel.firstElementChild.classList.add('challenge-modal');
                 aiPanel.firstElementChild.style.cssText = 'width: 100%; height: 100%; overflow-y: auto; position: relative; box-sizing: border-box;';
+            }
+        }
+        
+        const evalPanel = document.getElementById('evaluation-panel');
+        if (evalPanel) {
+            evalPanel.className = this.baseOverlayClass + ' hidden';
+            if (!evalPanel.querySelector('.challenge-modal')) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'challenge-modal';
+                wrapper.style.cssText = 'width: 100%; height: 100%; overflow-y: auto; position: relative; box-sizing: border-box; text-align: center;';
+                while (evalPanel.firstChild) {
+                    wrapper.appendChild(evalPanel.firstChild);
+                }
+                evalPanel.appendChild(wrapper);
             }
         }
     }
@@ -220,17 +214,17 @@ class UIManager {
             .eq-slot {
                 display: inline-flex; justify-content: center; align-items: center;
                 min-width: 40px; height: 45px; border: 2px dashed #888; border-radius: 8px; 
-                background: rgba(0,0,0,0.6); color: ${UI_THEME.primary}; font-weight: bold; font-size: 0.9em; 
+                background: rgba(0,0,0,0.6); color: #00ffcc; font-weight: bold; font-size: 0.9em; 
                 cursor: pointer; vertical-align: middle; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
                 padding: 0 10px; margin: 0 5px; transition: all 0.2s;
             }
-            .eq-slot[data-filled] { border: 2px solid ${UI_THEME.primary}; background: rgba(0,255,204,0.1); }
+            .eq-slot[data-filled] { border: 2px solid #00ffcc; background: rgba(0,255,204,0.1); }
             
             .showcase-item { transition: transform 0.3s; }
             .showcase-item:hover { transform: translateY(-10px) scale(1.05); }
             
             .help-module-title {
-                color: ${UI_THEME.warning}; font-size: 2.2em; margin-top: 30px; margin-bottom: 15px; 
+                color: var(--rpg-gold, #ffaa00); font-size: 2.2em; margin-top: 30px; margin-bottom: 15px; 
                 border-bottom: 2px solid #444; padding-bottom: 10px; font-weight: bold; text-shadow: 1px 1px 3px #000;
             }
             .help-step { font-size: 1.6em; line-height: 1.8; margin-bottom: 12px; color: #eee; }
@@ -260,7 +254,7 @@ class UIManager {
         targetBtns.forEach(btn => {
             if (btn && typeof gsap !== 'undefined') {
                 gsap.killTweensOf(btn); btn.style.boxShadow = "none"; btn.style.transform = "scale(1)";
-                let glowColor = (text.includes('警告') || text.includes('错误') || text.includes('❌')) ? UI_THEME.danger : ((text.includes('成功') || text.includes('完成') || text.includes('✅')) ? UI_THEME.warning : UI_THEME.primary);
+                let glowColor = (text.includes('警告') || text.includes('错误') || text.includes('❌')) ? "#ff4444" : ((text.includes('成功') || text.includes('完成') || text.includes('✅')) ? "#ffaa00" : "#00ffcc");
                 gsap.fromTo(btn, { boxShadow: `0 0 0px ${glowColor}`, scale: 1 }, { boxShadow: `0 0 25px ${glowColor}`, scale: 1.15, duration: 0.6, yoyo: true, repeat: 7, ease: "power1.inOut" });
             }
         });
@@ -272,70 +266,73 @@ class UIManager {
 
         overlay = document.createElement('div');
         overlay.id = 'help-instructions-overlay';
-        overlay.style.cssText = FULLSCREEN_OVERLAY_STYLE;
+        overlay.className = this.baseOverlayClass;
+        overlay.style.cssText = 'animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
 
         const mod1HTML = `
             <div class="help-module-title">🧩 模块一：结构探秘</div>
-            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.primary}; margin-bottom: 15px;">
-                <span style="color:${UI_THEME.primary}; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
+            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
+                <span style="color:#00ffcc; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. 拼装出“乙醇”与“二甲醚”两种分子结构。</div>
                 <div style="margin-left: 10px;">2. 完成看图鉴定挑战。</div>
             </div>
-            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.warning}; margin-bottom: 20px;">
-                <span style="color:${UI_THEME.warning}; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
-                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:${UI_THEME.warning};">【C、H、O 按钮】</span> 点击后在空白处生成对应的原子。</div>
-                <div style="margin-left: 10px;">2. <span style="color:${UI_THEME.warning};">【🖐️ 手形工具】</span> 拖拽空白处平移视角；拖拽框选分子可复制、删除或选出官能团。</div>
-                <div style="margin-left: 10px;">3. <span style="color:${UI_THEME.warning};">【🎯 靶子按钮】</span> 拼装出两种结构后出现，点击进入挑战测试。</div>
+            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
+                <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
+                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【C、H、O 按钮】</span> 点击后在空白处生成对应的原子。</div>
+                <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【🖐️ 手形工具】</span> 拖拽空白处平移视角；拖拽框选分子可复制、删除或选出官能团。</div>
+                <div style="margin-left: 10px;">3. <span style="color:#ffaa00;">【🎯 靶子按钮】</span> 拼装出两种结构后出现，点击进入挑战测试。</div>
             </div>
         `;
 
         const mod2HTML = `
             <div class="help-module-title">💥 模块二：置换反应</div>
-            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.primary}; margin-bottom: 15px;">
-                <span style="color:${UI_THEME.primary}; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
+            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
+                <span style="color:#00ffcc; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. 模拟乙醇与钠的反应，生成乙醇钠和氢气。</div>
                 <div style="margin-left: 10px;">2. 完成方程式配平。</div>
             </div>
-            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.warning}; margin-bottom: 20px;">
-                <span style="color:${UI_THEME.warning}; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
-                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:${UI_THEME.warning};">【Na 按钮】</span> 点击投入金属钠原子。</div>
-                <div style="margin-left: 10px;">2. <span style="color:${UI_THEME.warning};">【切断化学键】</span> 点击切断发红光的 O-H 键，再将 Na 拖至 O 附近置换。</div>
-                <div style="margin-left: 10px;">3. <span style="color:${UI_THEME.warning};">【⬚ 框选工具】</span> 选中所有物质复制后，将极游离的 H 结合成氢气。</div>
+            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
+                <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
+                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【Na 按钮】</span> 点击投入金属钠原子。</div>
+                <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【切断化学键】</span> 点击切断发红光的 O-H 键，再将 Na 拖至 O 附近置换。</div>
+                <div style="margin-left: 10px;">3. <span style="color:#ffaa00;">【⬚ 框选工具】</span> 选中所有物质复制后，将两个游离的 H 结合成氢气。</div>
             </div>
         `;
 
         const mod3HTML = `
             <div class="help-module-title">🔥 模块三：催化氧化</div>
-            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.primary}; margin-bottom: 15px;">
-                <span style="color:${UI_THEME.primary}; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
+            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
+                <span style="color:#00ffcc; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. 模拟乙醇的催化氧化反应，生成乙醛和水。</div>
                 <div style="margin-left: 10px;">2. 完成方程式填写。</div>
             </div>
-            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.warning}; margin-bottom: 20px;">
-                <span style="color:${UI_THEME.warning}; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
-                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:${UI_THEME.warning};">【Cu 按钮】</span> 点击加入氧化铜催化剂，将其拖至 O 原子附近。</div>
-                <div style="margin-left: 10px;">2. <span style="color:${UI_THEME.warning};">【断键与成键】</span> 切断 O-H 键、α碳上的 C-H 键及 Cu-O 键；点击 C 和 O 生成双键。</div>
-                <div style="margin-left: 10px;">3. <span style="color:${UI_THEME.warning};">【组装水分子】</span> 拖拽游离的两个 H 和一个 O 组装生成水。</div>
+            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
+                <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
+                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【Cu 按钮】</span> 点击加入氧化铜催化剂，将其拖至 O 原子附近。</div>
+                <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【断键与成键】</span> 切断 O-H 键、α碳上的 C-H 键及 Cu-O 键；点击 C 和 O 生成双键。</div>
+                <div style="margin-left: 10px;">3. <span style="color:#ffaa00;">【组装水分子】</span> 拖拽游离的两个 H 和一个 O 组装生成水。</div>
             </div>
         `;
 
         const mod4HTML = `
             <div class="help-module-title">🏆 模块四：综合评测</div>
-            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.primary}; margin-bottom: 15px;">
-                <span style="color:${UI_THEME.primary}; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
+            <div class="help-step" style="background: rgba(0,255,204,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #00ffcc; margin-bottom: 15px;">
+                <span style="color:#00ffcc; font-weight:bold; font-size: 1.2em;">🎯 核心任务</span><br>
                 <div style="margin-top: 8px; margin-left: 10px;">1. 回顾全息殿堂中的实验产物。</div>
                 <div style="margin-left: 10px;">2. 完成 5 道随机大考测试题，获取高定证书。</div>
             </div>
-            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid ${UI_THEME.warning}; margin-bottom: 20px;">
-                <span style="color:${UI_THEME.warning}; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
-                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:${UI_THEME.warning};">【📝 开始考核】</span> 点击殿堂下方按钮进入答题。</div>
-                <div style="margin-left: 10px;">2. <span style="color:${UI_THEME.warning};">【查看错题 / 证书】</span> 考核结束后查看雷达图或保存成果。</div>
+            <div class="help-step" style="background: rgba(255,170,0,0.15); padding: 15px 20px; border-radius: 8px; border-left: 5px solid #ffaa00; margin-bottom: 20px;">
+                <span style="color:#ffaa00; font-weight:bold; font-size: 1.2em;">🕹️ 按钮说明</span><br>
+                <div style="margin-top: 8px; margin-left: 10px;">1. <span style="color:#ffaa00;">【📝 开始考核】</span> 点击殿堂下方按钮进入答题。</div>
+                <div style="margin-left: 10px;">2. <span style="color:#ffaa00;">【查看错题 / 证书】</span> 考核结束后查看雷达图或保存成果。</div>
             </div>
         `;
 
         let helpContentHTML = "";
-        if (this.userStats.finalCompleted) { helpContentHTML = mod1HTML + mod2HTML + mod3HTML + mod4HTML; } 
-        else {
+        
+        if (this.userStats.finalCompleted) {
+            helpContentHTML = mod1HTML + mod2HTML + mod3HTML + mod4HTML;
+        } else {
             if (this.currentLevel === 1) helpContentHTML = mod1HTML;
             else if (this.currentLevel === 2) helpContentHTML = mod2HTML;
             else if (this.currentLevel === 3) helpContentHTML = mod3HTML;
@@ -343,12 +340,12 @@ class UIManager {
         }
         
         overlay.innerHTML = `
-            <div style="${MODAL_BOX_STYLE(UI_THEME.primary)} color: #fff;">
-                <button type="button" id="btn-close-help" class="magic-btn close-btn" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 50px !important; height: 50px !important; font-size: 1.8em !important; padding: 0 !important; z-index: 100000 !important; cursor: pointer !important; background: transparent; border: none; color: #ff4444;">❌</button>
-                <h2 style="color: ${UI_THEME.primary}; font-size: 3.5em !important; text-align: center !important; margin: 0 0 20px 0 !important; text-shadow: 0 0 15px rgba(0,255,204,0.5) !important; font-family: 'Heiti', sans-serif !important;">📜 ${this.userStats.finalCompleted ? '全阶段操作指南' : '本阶段操作指南'}</h2>
+            <div class="challenge-modal magic-scroll" style="width: 100%; height: 100%; overflow-y: auto; position: relative; padding: 40px 50px; box-sizing: border-box; background: rgba(20,20,30,0.98); color: #fff; animation: none !important; transition: none !important;">
+                <button id="btn-close-help" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10;">❌</button>
+                <h2 style="color: var(--rpg-mana, #00ffcc); font-size: 3.5em; text-align: center; margin-bottom: 20px; text-shadow: 0 0 15px rgba(0,255,204,0.5); font-family: 'Heiti', sans-serif;">📜 ${this.userStats.finalCompleted ? '全阶段操作指南' : '本阶段操作指南'}</h2>
                 ${helpContentHTML}
-                <div style="text-align: center !important; margin-top: 40px !important; width: 100% !important;">
-                    <button type="button" id="btn-close-help-bottom" class="magic-btn" style="font-size: 2em !important; padding: 15px 50px !important; border: 2px solid #fff !important; color: #fff !important; font-family: 'Heiti', sans-serif !important; cursor: pointer !important; background: transparent !important;">我明白了</button>
+                <div style="text-align: center; margin-top: 40px;">
+                    <button id="btn-close-help-bottom" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: #fff; color: #fff; font-family: 'Heiti', sans-serif;">我明白了</button>
                 </div>
             </div>
         `;
@@ -356,8 +353,7 @@ class UIManager {
 
         document.getElementById('canvas-container')?.classList.add('canvas-shrunk');
 
-        const closeHandler = (e) => { 
-            if(e){ e.preventDefault(); e.stopPropagation(); }
+        const closeHandler = () => { 
             overlay.remove(); 
             if (this.currentLevel !== 4) document.getElementById('canvas-container')?.classList.remove('canvas-shrunk');
             if (onCloseCallback) onCloseCallback(); 
@@ -491,7 +487,6 @@ class UIManager {
         document.getElementById('equation-minigame-overlay')?.remove();
         document.getElementById('final-quiz-dynamic-overlay')?.remove();
         document.getElementById('eval-dynamic-overlay')?.remove();
-        document.getElementById('wrong-question-overlay')?.remove();
         
         const canvas = document.getElementById('canvas-container');
         if (canvas && moduleId !== 4) canvas.classList.remove('canvas-shrunk');
@@ -589,42 +584,38 @@ class UIManager {
         this.updateLevelUI(); this.saveProgress();
     }
 
-    // 🌟 终极修复 1：成果殿堂 3模型同行显示。引入强力 flex-wrap: nowrap 和极致内联防崩
     showFinalShowcase() {
         let gallery = document.getElementById('final-gallery-overlay');
         if (gallery) gallery.remove();
 
         gallery = document.createElement('div');
         gallery.id = 'final-gallery-overlay'; 
-        gallery.style.cssText = FULLSCREEN_OVERLAY_STYLE;
+        gallery.className = this.baseOverlayClass; 
+        
+        // 🌟 修复：强行注入 fixed 定位与宽高，无视 GitHub Pages 外部 CSS 干扰
+        gallery.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background: rgba(0,0,0,0.85) !important; animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
         
         gallery.innerHTML = `
-            <div style="${MODAL_BOX_STYLE('#00ffcc')}">
-                <button type="button" id="btn-close-final-showcase" class="magic-btn close-btn" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 50px !important; height: 50px !important; font-size: 1.8em !important; cursor: pointer !important; background: transparent; border: none; color: #ff4444; z-index: 999999;">❌</button>
-                <div style="text-align: center !important; width: 100% !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; min-height: min-content !important;">
-                    <h2 style="color: var(--rpg-gold); font-size: 3.5em !important; margin: 0 0 40px 0 !important; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6) !important; letter-spacing: 5px !important; font-family: 'Heiti', sans-serif !important;">🏛️ 炼金成果殿堂</h2>
-                    
-                    <div style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: stretch !important; justify-content: flex-start !important; gap: 20px !important; width: 100% !important; max-width: 1200px !important; margin: 0 0 40px 0 !important; overflow-x: auto !important; padding-bottom: 20px !important;">
-                        
-                        <div class="showcase-item" style="flex: 0 0 auto !important; width: 300px !important; background: rgba(0,0,0,0.6) !important; border: 3px solid ${UI_THEME.primary} !important; border-radius: 15px !important; padding: 20px !important; box-sizing: border-box !important; display: flex !important; flex-direction: column !important; align-items: center !important;">
-                            <h3 style="color: ${UI_THEME.primary} !important; font-size: 1.6em !important; margin: 0 0 15px 0 !important; text-shadow: 0 0 10px ${UI_THEME.primary} !important; font-family: 'Heiti', sans-serif !important; white-space: nowrap !important;">基础分子(乙醇)</h3>
-                            <div id="showcase-ethanol" style="width: 100% !important; height: 240px !important;"></div>
+            <div class="challenge-modal" style="width: 100%; height: 100%; overflow-y: auto; text-align: center; position: relative; padding: 40px; box-sizing: border-box; animation: none !important; transition: none !important;">
+                <button id="btn-close-final-showcase" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 100000;">❌</button>
+                <div style="text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: min-content;">
+                    <h2 style="color: var(--rpg-gold); font-size: 3.5em; margin-bottom: 40px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); letter-spacing: 5px; font-family: 'Heiti', sans-serif;">🏛️ 炼金成果殿堂</h2>
+                    <div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-bottom: 20px; width: 90%; max-width: 1200px;">
+                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #00ffcc; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0,255,204,0.3);">
+                            <h3 style="color: #00ffcc; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #00ffcc; font-family: 'Heiti', sans-serif;">基础分子 (乙醇)</h3>
+                            <div id="showcase-ethanol" style="width: 260px; height: 260px;"></div>
                         </div>
-                        
-                        <div class="showcase-item" style="flex: 0 0 auto !important; width: 300px !important; background: rgba(0,0,0,0.6) !important; border: 3px solid ${UI_THEME.warning} !important; border-radius: 15px !important; padding: 20px !important; box-sizing: border-box !important; display: flex !important; flex-direction: column !important; align-items: center !important;">
-                            <h3 style="color: ${UI_THEME.warning} !important; font-size: 1.6em !important; margin: 0 0 15px 0 !important; text-shadow: 0 0 10px ${UI_THEME.warning} !important; font-family: 'Heiti', sans-serif !important; white-space: nowrap !important;">置换产物(乙醇钠)</h3>
-                            <div id="showcase-na" style="width: 100% !important; height: 240px !important;"></div>
+                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #ffaa00; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(255,170,0,0.3);">
+                            <h3 style="color: #ffaa00; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #ffaa00; font-family: 'Heiti', sans-serif;">置换产物 (乙醇钠)</h3>
+                            <div id="showcase-na" style="width: 260px; height: 260px;"></div>
                         </div>
-                        
-                        <div class="showcase-item" style="flex: 0 0 auto !important; width: 300px !important; background: rgba(0,0,0,0.6) !important; border: 3px solid ${UI_THEME.danger} !important; border-radius: 15px !important; padding: 20px !important; box-sizing: border-box !important; display: flex !important; flex-direction: column !important; align-items: center !important;">
-                            <h3 style="color: ${UI_THEME.danger} !important; font-size: 1.6em !important; margin: 0 0 15px 0 !important; text-shadow: 0 0 10px ${UI_THEME.danger} !important; font-family: 'Heiti', sans-serif !important; white-space: nowrap !important;">氧化产物(乙醛)</h3>
-                            <div id="showcase-cu" style="width: 100% !important; height: 240px !important;"></div>
+                        <div class="showcase-item" style="background: rgba(0,0,0,0.6); border: 3px solid #ff4444; border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(255,68,68,0.3);">
+                            <h3 style="color: #ff4444; font-size: 1.8em; margin-bottom: 15px; text-shadow: 0 0 10px #ff4444; font-family: 'Heiti', sans-serif;">氧化产物 (乙醛)</h3>
+                            <div id="showcase-cu" style="width: 260px; height: 260px;"></div>
                         </div>
-
                     </div>
-                    
-                    <p style="color: #ddd !important; font-size: 1.5em !important; margin: 0 0 30px 0 !important; text-shadow: 1px 1px 3px #000 !important; font-family: 'Songti', serif !important;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
-                    <button type="button" id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em !important; padding: 15px 60px !important; border: 2px solid var(--rpg-gold) !important; color: var(--rpg-gold) !important; text-shadow: 0 0 10px rgba(255,215,0,0.5) !important; margin: 0 !important; font-family: 'Heiti', sans-serif !important; cursor: pointer !important; background: transparent !important;">📝 开始最终考核</button>
+                    <p style="color: #ddd; font-size: 1.5em; margin-top: 30px; margin-bottom: 30px; text-shadow: 1px 1px 3px #000; font-family: 'Songti', serif;">闭上眼睛回忆它们断键与重组的瞬间。<br>准备好后，点击下方发光的【开始考核】按钮。</p>
+                    <button id="btn-start-final-quiz" class="magic-btn" style="font-size: 1.8em; padding: 15px 60px; border-color: var(--rpg-gold); color: var(--rpg-gold); text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 40px; font-family: 'Heiti', sans-serif;">📝 开始最终考核</button>
                 </div>
             </div>
         `;
@@ -634,8 +625,7 @@ class UIManager {
 
         const closeShowcaseBtn = document.getElementById('btn-close-final-showcase');
         if (closeShowcaseBtn) {
-            closeShowcaseBtn.addEventListener('click', (e) => {
-                if(e) e.preventDefault();
+            closeShowcaseBtn.addEventListener('click', () => {
                 gallery.remove();
                 if (this.showcaseRenderers) { this.showcaseRenderers.forEach(r => r.dispose()); this.showcaseRenderers = null; }
             });
@@ -666,11 +656,14 @@ class UIManager {
 
         overlay = document.createElement('div');
         overlay.id = 'final-quiz-dynamic-overlay';
-        overlay.style.cssText = FULLSCREEN_OVERLAY_STYLE;
+        overlay.className = this.baseOverlayClass; 
+        
+        // 🌟 修复：强行注入 fixed 定位与宽高
+        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background: rgba(0,0,0,0.85) !important; animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
         
         overlay.innerHTML = `
-            <div style="${MODAL_BOX_STYLE('#00ffcc')}">
-                <div id="dynamic-quiz-content" style="width: 100% !important; min-height: 100% !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; padding: 20px 0 !important; box-sizing: border-box !important;"></div>
+            <div class="challenge-modal magic-scroll" style="width: 100%; height: 100%; overflow-y: auto; position: relative; box-sizing: border-box; background: rgba(20,20,30,0.98); z-index: 9999999; animation: none !important; transition: none !important;">
+                <div id="dynamic-quiz-content" style="width: 100%; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; box-sizing: border-box; animation: none !important;"></div>
             </div>
         `;
         document.body.appendChild(overlay);
@@ -686,21 +679,21 @@ class UIManager {
         if (!container) return;
         
         let html = `
-            <div style="display: flex !important; flex-direction: column !important; align-items: center !important; text-align: left !important; padding: 20px 30px !important; box-sizing: border-box !important; width: 100% !important; max-width: 100% !important;">
+            <div style="display: flex; flex-direction: column; align-items: center; text-align: left; padding: 20px 30px; box-sizing: border-box; width: 100%; max-width: 100%; animation: none !important;">
                 
-                <h3 style="display: block !important; width: 100% !important; color: ${UI_THEME.primary} !important; font-size: 3.5em !important; font-family: 'Heiti', 'SimHei', sans-serif !important; margin: 0 0 30px 0 !important; text-shadow: 0 0 12px rgba(0,255,204,0.6) !important; text-align: center !important; flex-shrink: 0 !important;">
+                <h3 style="display: block !important; width: 100%; color: #00ffcc !important; font-size: 3.5em !important; font-family: 'Heiti', 'SimHei', sans-serif; margin-bottom: 30px; text-shadow: 0 0 12px rgba(0,255,204,0.6); text-align: center; opacity: 1 !important; visibility: visible !important; flex-shrink: 0; min-height: max-content; line-height: 1.5; z-index: 10; position: relative;">
                     最终考核 (${this.finalQuizState.currentIndex + 1}/5)
                 </h3>
                 
-                <div style="background: rgba(20, 25, 35, 0.95) !important; border: 2px solid ${UI_THEME.primary} !important; border-radius: 16px !important; padding: 40px 50px !important; box-shadow: 0 0 30px rgba(0,255,204,0.2) !important; width: 100% !important; max-width: 1200px !important; box-sizing: border-box !important;">
-                    <div style="font-size: 2.8em !important; font-family: 'Songti', 'SimSun', serif !important; color: #fff !important; margin: 0 0 40px 0 !important; line-height: 1.8 !important; word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important;">
+                <div style="background: rgba(20, 25, 35, 0.95); border: 2px solid #00ffcc; border-radius: 16px; padding: 40px 50px; box-shadow: 0 0 30px rgba(0,255,204,0.2); width: 100%; max-width: 1200px; box-sizing: border-box; position: relative; z-index: 20;">
+                    <div style="font-size: 2.8em; font-family: 'Songti', 'SimSun', serif; color: #fff; margin-bottom: 40px; line-height: 1.8; word-break: break-word; overflow-wrap: break-word; white-space: normal;">
                         ${q.question}
                     </div>
-                    <div style="display: flex !important; flex-direction: column !important; gap: 20px !important; width: 100% !important;">
+                    <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
         `;
         
         q.options.forEach((opt, idx) => {
-            html += `<button type="button" class="magic-btn quiz-opt-btn" data-idx="${idx}" style="display: block !important; text-align: left !important; padding: 25px 40px !important; font-size: 2.5em !important; font-family: 'Heiti', 'SimHei', sans-serif !important; border: 2px solid #555 !important; border-radius: 12px !important; color: #ddd !important; background: rgba(0,0,0,0.6) !important; transition: all 0.2s !important; word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; line-height: 1.6 !important; width: 100% !important; box-sizing: border-box !important; cursor: pointer !important;">${String.fromCharCode(65+idx)}. ${opt}</button>`;
+            html += `<button class="magic-btn quiz-opt-btn" data-idx="${idx}" style="display: block; text-align: left; padding: 25px 40px; font-size: 2.5em; font-family: 'Heiti', 'SimHei', sans-serif; border: 2px solid #555; border-radius: 12px; color: #ddd; background: rgba(0,0,0,0.6); transition: all 0.2s; word-break: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.6; width: 100%; box-sizing: border-box; cursor: pointer;">${String.fromCharCode(65+idx)}. ${opt}</button>`;
         });
 
         html += `
@@ -712,10 +705,9 @@ class UIManager {
 
         const btns = container.querySelectorAll('.quiz-opt-btn');
         btns.forEach(btn => {
-            btn.onmouseenter = () => { btn.style.borderColor = UI_THEME.primary; btn.style.background = 'rgba(0,255,204,0.15)'; btn.style.transform = 'translateX(10px)'; btn.style.boxShadow = '0 0 15px rgba(0,255,204,0.4)'; };
+            btn.onmouseenter = () => { btn.style.borderColor = '#00ffcc'; btn.style.background = 'rgba(0,255,204,0.15)'; btn.style.transform = 'translateX(10px)'; btn.style.boxShadow = '0 0 15px rgba(0,255,204,0.4)'; };
             btn.onmouseleave = () => { btn.style.borderColor = '#555'; btn.style.background = 'rgba(0,0,0,0.6)'; btn.style.transform = 'translateX(0)'; btn.style.boxShadow = 'none'; };
-            btn.onclick = (e) => {
-                if(e) e.preventDefault(); 
+            btn.onclick = () => {
                 const selectedIdx = parseInt(btn.getAttribute('data-idx'));
                 this.handleFinalQuizAnswer(selectedIdx, q);
             };
@@ -732,37 +724,36 @@ class UIManager {
         } else {
             this.userStats.wrongQuestions.push({
                 module: 4, 
-                explanation: `<strong>题目：</strong>${q.question}<br><span style="color:${UI_THEME.primary};">正确答案：${q.options[q.correctIdx]}</span><br><span style="color:#aaa;">解析：${q.explanation}</span>`
+                explanation: `<strong>题目：</strong>${q.question}<br><span style="color:#00ffcc;">正确答案：${q.options[q.correctIdx]}</span><br><span style="color:#aaa;">解析：${q.explanation}</span>`
             });
         }
 
-        const resultColor = isCorrect ? UI_THEME.primary : UI_THEME.danger;
+        const resultColor = isCorrect ? "#00ffcc" : "#ff4444";
         const resultTitle = isCorrect ? "回答正确！" : "回答错误...";
         
         container.innerHTML = `
-            <div style="display: flex !important; flex-direction: column !important; align-items: center !important; text-align: left !important; padding: 20px 30px !important; box-sizing: border-box !important; width: 100% !important; max-width: 100% !important;">
+            <div style="display: flex; flex-direction: column; align-items: center; text-align: left; padding: 20px 30px; box-sizing: border-box; width: 100%; max-width: 100%; animation: none !important;">
                 
-                <h3 style="display: block !important; width: 100% !important; color:${resultColor} !important; font-size: 3.5em !important; font-family: 'Heiti', 'SimHei', sans-serif !important; margin: 0 0 30px 0 !important; text-shadow: 0 0 15px ${resultColor} !important; text-align: center !important; flex-shrink: 0 !important;">
+                <h3 style="display: block !important; width: 100%; color:${resultColor} !important; font-size: 3.5em !important; font-family: 'Heiti', 'SimHei', sans-serif; margin-bottom: 30px; text-shadow: 0 0 15px ${resultColor}; text-align: center; opacity: 1 !important; visibility: visible !important; flex-shrink: 0; min-height: max-content; line-height: 1.5; z-index: 10; position: relative;">
                     ${resultTitle}
                 </h3>
                 
-                <div style="background: rgba(20, 25, 35, 0.95) !important; border: 2px solid ${resultColor} !important; border-radius: 16px !important; padding: 40px 50px !important; box-shadow: 0 0 30px rgba(${isCorrect ? '0,255,204' : '255,68,68'}, 0.25) !important; width: 100% !important; max-width: 1200px !important; box-sizing: border-box !important;">
+                <div style="background: rgba(20, 25, 35, 0.95); border: 2px solid ${resultColor}; border-radius: 16px; padding: 40px 50px; box-shadow: 0 0 30px rgba(${isCorrect ? '0,255,204' : '255,68,68'}, 0.25); width: 100%; max-width: 1200px; box-sizing: border-box; position: relative; z-index: 20;">
                     
-                    <div style="font-size: 2.8em !important; font-family: 'Songti', 'SimSun', serif !important; line-height: 1.8 !important; color: #fff !important; word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; margin: 0 !important;">
-                        ${isCorrect ? `<span style="color:${UI_THEME.primary} !important; font-weight:bold !important; font-family: 'Heiti', sans-serif !important;">太棒了！</span><br><br>` : `<span style="color:${UI_THEME.danger} !important; text-decoration:line-through !important;">你选择了：${q.options[selectedIdx]}</span><br><span style="color:${UI_THEME.primary} !important; font-weight:bold !important; font-family: 'Heiti', sans-serif !important;">正确答案：${q.options[q.correctIdx]}</span><br><br>`}
+                    <div style="font-size: 2.8em; font-family: 'Songti', 'SimSun', serif; line-height: 1.8; color: #fff; word-break: break-word; overflow-wrap: break-word; white-space: normal;">
+                        ${isCorrect ? `<span style="color:#00ffcc; font-weight:bold; font-family: 'Heiti', sans-serif;">太棒了！</span><br><br>` : `<span style="color:#ff4444; text-decoration:line-through;">你选择了：${q.options[selectedIdx]}</span><br><span style="color:#00ffcc; font-weight:bold; font-family: 'Heiti', sans-serif;">正确答案：${q.options[q.correctIdx]}</span><br><br>`}
                         ${q.explanation}
                     </div>
                     
                 </div>
                 
-                <div style="display: block !important; width: 100% !important; margin-top: 50px !important; text-align: center !important;">
-                    <button type="button" id="btn-next-quiz" class="magic-btn" style="display: inline-block !important; font-size: 3em !important; font-family: 'Heiti', 'SimHei', sans-serif !important; padding: 20px 80px !important; border: 2px solid var(--rpg-gold, #ffaa00) !important; color: var(--rpg-gold, #ffaa00) !important; box-shadow: 0 0 25px rgba(255,215,0,0.4) !important; cursor: pointer !important; background: transparent !important;">${this.finalQuizState.currentIndex < 4 ? '下一题' : '查看最终成绩'}</button>
+                <div style="display: block; width: 100%; margin-top: 50px; text-align: center; position: relative; z-index: 30;">
+                    <button id="btn-next-quiz" class="magic-btn" style="display: inline-block; font-size: 3em; font-family: 'Heiti', 'SimHei', sans-serif; padding: 20px 80px; border-color: var(--rpg-gold, #ffaa00); color: var(--rpg-gold, #ffaa00); box-shadow: 0 0 25px rgba(255,215,0,0.4); cursor: pointer;">${this.finalQuizState.currentIndex < 4 ? '下一题' : '查看最终成绩'}</button>
                 </div>
             </div>
         `;
 
-        document.getElementById('btn-next-quiz').onclick = (e) => {
-            if(e) { e.preventDefault(); e.stopPropagation(); } 
+        document.getElementById('btn-next-quiz').onclick = () => {
             this.finalQuizState.currentIndex++;
             if (this.finalQuizState.currentIndex < 5) {
                 this.renderFinalQuizQuestion();
@@ -797,17 +788,18 @@ class UIManager {
 
         overlay = document.createElement('div');
         overlay.id = 'equation-minigame-overlay';
-        overlay.style.cssText = FULLSCREEN_OVERLAY_STYLE;
+        overlay.className = this.baseOverlayClass;
+        overlay.style.cssText = 'animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
         
         let contentHTML = '';
 
         if (type === 'sodium') {
             contentHTML = `
-                <button type="button" id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 60px !important; height: 60px !important; font-size: 2.2em !important; z-index: 1000000 !important; cursor:pointer !important; padding: 0 !important; background: transparent; border: none; color: #ff4444;">❌</button>
-                <h2 style="color: var(--rpg-mana); font-size: 3em !important; margin: 0 0 15px 0 !important; font-family: 'Heiti', sans-serif !important;">✅ 置换反应方程式测试</h2>
-                <p style="color: #fff !important; font-size: 1.6em !important; margin: 0 0 25px 0 !important; font-family: 'Songti', serif !important;">请拖拽正确的系数和产物，完成方程式的配平：</p>
+                <button id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 60px; height: 60px; font-size: 2.2em; z-index: 1000000;">❌</button>
+                <h2 style="color: var(--rpg-mana); font-size: 3em; margin-bottom: 15px; margin-top: 10px; font-family: 'Heiti', sans-serif;">✅ 置换反应方程式测试</h2>
+                <p style="color: #fff; font-size: 1.6em; margin-bottom: 25px; font-family: 'Songti', serif;">请拖拽正确的系数和产物，完成方程式的配平：</p>
                 
-                <div id="eq-drag-pool" style="display: flex !important; gap: 15px !important; justify-content: center !important; flex-wrap: wrap !important; margin: 0 0 25px 0 !important; background: rgba(0,0,0,0.3) !important; padding: 15px !important; border-radius: 12px !important; border: 1px solid #444 !important;">
+                <div id="eq-drag-pool" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 25px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid #444;">
                     <div class="eq-drag" draggable="true" data-val="2">2</div>
                     <div class="eq-drag" draggable="true" data-val="3">3</div>
                     <div class="eq-drag" draggable="true" data-val="CH3CH2ONa">CH₃CH₂ONa</div>
@@ -815,23 +807,23 @@ class UIManager {
                     <div class="eq-drag" draggable="true" data-val="H2O">H₂O</div>
                 </div>
 
-                <div style="font-size: 2.4em !important; margin: 0 0 30px 0 !important; background: rgba(0,0,0,0.5) !important; padding: 25px 15px !important; border-radius: 12px !important; border: 3px solid #00ffcc !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-wrap: wrap !important; gap: 5px !important; font-family: monospace !important; color: #fff !important;">
+                <div style="font-size: 2.4em; margin-bottom: 30px; background: rgba(0,0,0,0.5); padding: 25px 15px; border-radius: 12px; border: 3px solid #00ffcc; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 5px; font-family: monospace; color: #fff;">
                     <div class="eq-slot" data-expected="2"></div> CH₃CH₂OH + 
                     <div class="eq-slot" data-expected="2"></div> Na → 
-                    <div class="eq-slot" data-expected="2"></div> <div class="eq-slot" data-expected="CH3CH2ONa" style="min-width: 150px !important;"></div> + 
-                    <div class="eq-slot" data-expected="H2" style="min-width: 80px !important;"></div>
+                    <div class="eq-slot" data-expected="2"></div> <div class="eq-slot" data-expected="CH3CH2ONa" style="min-width: 150px;"></div> + 
+                    <div class="eq-slot" data-expected="H2" style="min-width: 80px;"></div>
                 </div>
 
-                <p id="final-eq-feedback" style="color: #ff4444 !important; font-size: 1.8em !important; height: 30px !important; margin: 0 0 20px 0 !important; font-weight: bold !important; font-family: 'Heiti', sans-serif !important;"></p>
-                <button type="button" id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em !important; padding: 15px 50px !important; border: 2px solid var(--rpg-gold) !important; color: var(--rpg-gold) !important; font-family: 'Heiti', sans-serif !important; background: transparent !important; cursor: pointer !important;">提交验证</button>
+                <p id="final-eq-feedback" style="color: #ff4444; font-size: 1.8em; height: 30px; margin-bottom: 20px; font-weight: bold; font-family: 'Heiti', sans-serif;"></p>
+                <button id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold); font-family: 'Heiti', sans-serif;">提交验证</button>
             `;
         } else if (type === 'oxidation') {
             contentHTML = `
-                <button type="button" id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 60px !important; height: 60px !important; font-size: 2.2em !important; z-index: 1000000 !important; cursor:pointer !important; padding: 0 !important; background: transparent; border: none; color: #ff4444;">❌</button>
-                <h2 style="color: var(--rpg-mana); font-size: 3em !important; margin: 0 0 15px 0 !important; font-family: 'Heiti', sans-serif !important;">✅ 催化氧化方程式测试</h2>
-                <p style="color: #fff !important; font-size: 1.6em !important; margin: 0 0 25px 0 !important; font-family: 'Songti', serif !important;">请拖拽正确的化学计量数、产物与反应条件，完成方程式书写：</p>
+                <button id="btn-close-final-eq-popup" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 60px; height: 60px; font-size: 2.2em; z-index: 1000000;">❌</button>
+                <h2 style="color: var(--rpg-mana); font-size: 3em; margin-bottom: 15px; margin-top: 10px; font-family: 'Heiti', sans-serif;">✅ 催化氧化方程式测试</h2>
+                <p style="color: #fff; font-size: 1.6em; margin-bottom: 25px; font-family: 'Songti', serif;">请拖拽正确的化学计量数、产物与反应条件，完成方程式书写：</p>
                 
-                <div id="eq-drag-pool" style="display: flex !important; gap: 15px !important; justify-content: center !important; flex-wrap: wrap !important; margin: 0 0 25px 0 !important; background: rgba(0,0,0,0.3) !important; padding: 15px !important; border-radius: 12px !important; border: 1px solid #444 !important;">
+                <div id="eq-drag-pool" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 25px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid #444;">
                     <div class="eq-drag" draggable="true" data-val="2">2</div>
                     <div class="eq-drag" draggable="true" data-val="O2">O₂</div>
                     <div class="eq-drag" draggable="true" data-val="Cu">Cu</div>
@@ -840,26 +832,26 @@ class UIManager {
                     <div class="eq-drag" draggable="true" data-val="H2O">H₂O</div>
                 </div>
 
-                <div style="font-size: 2.4em !important; margin: 0 0 30px 0 !important; background: rgba(0,0,0,0.5) !important; padding: 25px 15px !important; border-radius: 12px !important; border: 3px solid #00ffcc !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-wrap: wrap !important; gap: 5px !important; font-family: monospace !important; color: #fff !important;">
-                    <div class="eq-slot" data-expected="2" style="min-width: 40px !important;"></div> CH₃CH₂OH + <div class="eq-slot" data-expected="O2" style="min-width: 60px !important;"></div>
+                <div style="font-size: 2.4em; margin-bottom: 30px; background: rgba(0,0,0,0.5); padding: 25px 15px; border-radius: 12px; border: 3px solid #00ffcc; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 5px; font-family: monospace; color: #fff;">
+                    <div class="eq-slot" data-expected="2" style="min-width: 40px;"></div> CH₃CH₂OH + <div class="eq-slot" data-expected="O2" style="min-width: 60px;"></div>
                     
-                    <div style="display:inline-flex !important; flex-direction:column !important; align-items:center !important; vertical-align:middle !important; margin: 0 10px !important;">
-                        <div class="eq-slot" data-expected="Cu" style="height:35px !important; min-width:50px !important; font-size:0.7em !important; margin: 0 0 2px 0 !important; border-color:#ffaa00 !important;"></div>
-                        <span style="color:#ffaa00 !important; margin: -5px 0 !important;">――→</span>
-                        <div class="eq-slot" data-expected="△" style="height:35px !important; min-width:50px !important; font-size:0.7em !important; margin: 2px 0 0 0 !important; border-color:#ffaa00 !important;"></div>
+                    <div style="display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin: 0 10px;">
+                        <div class="eq-slot" data-expected="Cu" style="height:35px; min-width:50px; font-size:0.7em; margin-bottom:2px; border-color:#ffaa00;"></div>
+                        <span style="color:#ffaa00; margin-top:-5px; margin-bottom:-5px;">――→</span>
+                        <div class="eq-slot" data-expected="△" style="height:35px; min-width:50px; font-size:0.7em; margin-top:2px; border-color:#ffaa00;"></div>
                     </div>
 
-                    <div class="eq-slot" data-expected="2" style="min-width: 40px !important;"></div> <div class="eq-slot" data-expected="CH3CHO" style="min-width: 130px !important;"></div> + 
-                    <div class="eq-slot" data-expected="2" style="min-width: 40px !important;"></div> <div class="eq-slot" data-expected="H2O" style="min-width: 70px !important;"></div>
+                    <div class="eq-slot" data-expected="2" style="min-width: 40px;"></div> <div class="eq-slot" data-expected="CH3CHO" style="min-width: 130px;"></div> + 
+                    <div class="eq-slot" data-expected="2" style="min-width: 40px;"></div> <div class="eq-slot" data-expected="H2O" style="min-width: 70px;"></div>
                 </div>
 
-                <p id="final-eq-feedback" style="color: #ff4444 !important; font-size: 1.8em !important; height: 30px !important; margin: 0 0 20px 0 !important; font-weight: bold !important; font-family: 'Heiti', sans-serif !important;"></p>
-                <button type="button" id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em !important; padding: 15px 50px !important; border: 2px solid var(--rpg-gold) !important; color: var(--rpg-gold) !important; font-family: 'Heiti', sans-serif !important; background: transparent !important; cursor: pointer !important;">提交验证</button>
+                <p id="final-eq-feedback" style="color: #ff4444; font-size: 1.8em; height: 30px; margin-bottom: 20px; font-weight: bold; font-family: 'Heiti', sans-serif;"></p>
+                <button id="btn-submit-final-eq" class="magic-btn" style="font-size: 2em; padding: 15px 50px; border-color: var(--rpg-gold); color: var(--rpg-gold); font-family: 'Heiti', sans-serif;">提交验证</button>
             `;
         }
 
         overlay.innerHTML = `
-            <div style="${MODAL_BOX_STYLE('#00ffcc')} text-align: center !important;">
+            <div class="challenge-modal" style="text-align: center; width: 100%; height: 100%; overflow-y: auto; position: relative; padding: 30px 40px; box-sizing: border-box; background: rgba(20,20,30,0.95); border: 2px solid #00ffcc; border-radius: 12px; box-shadow: 0 0 30px rgba(0,255,204,0.3); animation: none !important; transition: none !important;">
                 ${contentHTML}
             </div>
         `;
@@ -867,16 +859,14 @@ class UIManager {
         document.body.appendChild(overlay);
         document.getElementById('canvas-container')?.classList.add('canvas-shrunk');
 
-        document.getElementById('btn-close-final-eq-popup').addEventListener('click', (e) => { 
-            if(e) e.preventDefault();
+        document.getElementById('btn-close-final-eq-popup').addEventListener('click', () => { 
             overlay.remove(); 
             document.getElementById('canvas-container')?.classList.remove('canvas-shrunk');
         });
         
         this.initEquationDragDrop();
 
-        document.getElementById('btn-submit-final-eq').addEventListener('click', (e) => {
-            if(e) e.preventDefault();
+        document.getElementById('btn-submit-final-eq').addEventListener('click', () => {
             const slots = document.querySelectorAll('.eq-slot');
             const feedback = document.getElementById('final-eq-feedback');
             
@@ -924,14 +914,11 @@ class UIManager {
         });
     }
 
-    bindCommonDragDrop(dragSelector, dropSelector) {
-        const dragItems = document.querySelectorAll(dragSelector);
-        const dropZones = document.querySelectorAll(dropSelector);
+    initEquationDragDrop() {
+        const dragItems = document.querySelectorAll('.eq-drag');
+        const dropZones = document.querySelectorAll('.eq-slot');
 
         dragItems.forEach(item => {
-            if (item.dataset.bound) return;
-            item.dataset.bound = 'true';
-            
             item.addEventListener('dragstart', (e) => {
                 this.draggedVal = item.getAttribute('data-val');
                 this.activeDragElement = item;
@@ -943,83 +930,36 @@ class UIManager {
             });
             item.addEventListener('pointerdown', () => {
                 dragItems.forEach(i => i.style.borderColor = '#aaa');
-                item.style.borderColor = UI_THEME.primary;
+                item.style.borderColor = '#00ffcc';
                 this.selectedLinearVal = item.getAttribute('data-val');
                 this.selectedLinearText = item.innerHTML;
             });
         });
 
         dropZones.forEach(zone => {
-            if (zone.dataset.bound) return;
-            zone.dataset.bound = 'true';
-
-            zone.addEventListener('dragover', (e) => { 
-                e.preventDefault(); 
-                zone.style.borderColor = UI_THEME.primary; 
-                zone.style.background = 'rgba(0,255,204,0.2)';
-            });
-            zone.addEventListener('dragleave', () => { 
-                if(!zone.getAttribute('data-filled')) {
-                    zone.style.borderColor = UI_THEME.borderNormal; 
-                    zone.style.background = 'rgba(0,0,0,0.6)';
-                }
-            });
+            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.style.borderColor = '#00ffcc'; });
+            zone.addEventListener('dragleave', () => { if(!zone.getAttribute('data-filled')) zone.style.borderColor = '#888'; });
             zone.addEventListener('drop', (e) => {
                 e.preventDefault();
-                zone.style.background = 'rgba(0,0,0,0.6)';
                 if (this.draggedVal && this.activeDragElement) {
                     zone.setAttribute('data-filled', this.draggedVal);
                     zone.innerHTML = this.activeDragElement.innerHTML;
-                    zone.style.borderColor = UI_THEME.primary;
-                } else if (!zone.getAttribute('data-filled')) {
-                    zone.style.borderColor = UI_THEME.borderNormal;
+                    zone.style.borderColor = '#00ffcc';
                 }
             });
             zone.addEventListener('pointerdown', () => {
                 if (this.selectedLinearVal) {
                     zone.setAttribute('data-filled', this.selectedLinearVal);
                     zone.innerHTML = this.selectedLinearText;
-                    zone.style.borderColor = UI_THEME.primary;
+                    zone.style.borderColor = '#00ffcc';
                     dragItems.forEach(i => i.style.borderColor = '#aaa');
                     this.selectedLinearVal = null; 
                 } else if (zone.getAttribute('data-filled')) {
-                    zone.removeAttribute('data-filled'); 
-                    zone.innerHTML = '';
-                    zone.style.borderColor = UI_THEME.borderNormal; 
-                    zone.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.5)';
+                    zone.removeAttribute('data-filled'); zone.innerHTML = '';
+                    zone.style.borderColor = '#888'; zone.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.5)';
                 }
             });
         });
-    }
-
-    initEquationDragDrop() {
-        this.bindCommonDragDrop('.eq-drag', '.eq-slot');
-    }
-
-    initLinearStructureDragDrop() {
-        const dragItems = document.querySelectorAll('.linear-drag');
-        if (dragItems.length > 0 && dragItems[0].parentElement) {
-            const dragContainer = dragItems[0].parentElement;
-            
-            Array.from(dragContainer.children).forEach(child => {
-                if (child.tagName === 'SPAN' || child.classList.contains('drag-title')) child.remove();
-            });
-
-            dragContainer.style.position = 'absolute'; dragContainer.style.right = '20px';
-            dragContainer.style.top = '50%'; dragContainer.style.transform = 'translateY(-50%)';
-            dragContainer.style.display = 'flex'; dragContainer.style.flexDirection = 'column'; 
-            dragContainer.style.gap = '10px'; dragContainer.style.padding = '12px 10px'; 
-            dragContainer.style.background = UI_THEME.bgDark; dragContainer.style.border = `2px solid ${UI_THEME.primary}`;
-            dragContainer.style.borderRadius = '12px'; dragContainer.style.boxShadow = '0 0 20px rgba(0, 255, 204, 0.3)';
-            dragContainer.style.zIndex = '999'; dragContainer.style.alignItems = 'center';
-            dragContainer.style.minWidth = 'auto'; dragContainer.style.marginBottom = '0'; 
-
-            dragItems.forEach(item => { item.style.padding = '10px 15px'; item.style.fontSize = '1.6em'; });
-
-            const scrollContent = document.querySelector('.challenge-scroll-content');
-            if (scrollContent) scrollContent.style.paddingRight = '120px';
-        }
-        this.bindCommonDragDrop('.linear-drag', '.linear-slot');
     }
     
     updateLevelUI() {
@@ -1075,6 +1015,82 @@ class UIManager {
             box.addEventListener('dblclick', () => { state = { scale: 1, x: 0, y: 0 }; updateTransform(); });
 
             function updateTransform() { img.style.transform = `translate(${state.x}px, ${state.y}px) scale(${state.scale})`; }
+        });
+    }
+
+    initLinearStructureDragDrop() {
+        const dragItems = document.querySelectorAll('.linear-drag');
+        const dropZones = document.querySelectorAll('.linear-slot');
+        
+        if (dragItems.length > 0 && dragItems[0].parentElement) {
+            const dragContainer = dragItems[0].parentElement;
+            
+            Array.from(dragContainer.children).forEach(child => {
+                if (child.tagName === 'SPAN' || child.classList.contains('drag-title')) child.remove();
+            });
+
+            dragContainer.style.position = 'absolute'; dragContainer.style.right = '20px';
+            dragContainer.style.top = '50%'; dragContainer.style.transform = 'translateY(-50%)';
+            dragContainer.style.display = 'flex'; dragContainer.style.flexDirection = 'column'; 
+            dragContainer.style.gap = '10px'; dragContainer.style.padding = '12px 10px'; 
+            dragContainer.style.background = 'rgba(20, 20, 30, 0.95)'; dragContainer.style.border = '2px solid var(--rpg-mana, #00ffcc)';
+            dragContainer.style.borderRadius = '12px'; dragContainer.style.boxShadow = '0 0 20px rgba(0, 255, 204, 0.3)';
+            dragContainer.style.zIndex = '999'; dragContainer.style.alignItems = 'center';
+            dragContainer.style.minWidth = 'auto'; dragContainer.style.marginBottom = '0'; 
+
+            dragItems.forEach(item => { item.style.padding = '10px 15px'; item.style.fontSize = '1.6em'; });
+
+            const scrollContent = document.querySelector('.challenge-scroll-content');
+            if (scrollContent) scrollContent.style.paddingRight = '120px';
+        }
+
+        dragItems.forEach(item => {
+            if (item.dataset.bound) return;
+            item.dataset.bound = 'true';
+            
+            item.addEventListener('dragstart', (e) => {
+                this.draggedVal = item.getAttribute('data-val');
+                this.activeDragElement = item;
+                setTimeout(() => item.style.opacity = '0.5', 0);
+            });
+            item.addEventListener('dragend', () => {
+                if (this.activeDragElement) this.activeDragElement.style.opacity = '1';
+                this.draggedVal = null; this.activeDragElement = null;
+            });
+            
+            item.addEventListener('pointerdown', (e) => {
+                dragItems.forEach(i => i.style.borderColor = '#aaa');
+                item.style.borderColor = '#00ffcc';
+                this.selectedLinearVal = item.getAttribute('data-val');
+                this.selectedLinearText = item.innerHTML;
+            });
+        });
+
+        dropZones.forEach(zone => {
+            if (zone.dataset.bound) return;
+            zone.dataset.bound = 'true';
+
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault(); zone.style.borderColor = '#00ffcc'; zone.style.background = 'rgba(0,255,204,0.2)';
+            });
+            zone.addEventListener('dragleave', () => {
+                zone.style.borderColor = '#666'; zone.style.background = 'rgba(0,0,0,0.6)';
+            });
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault(); zone.style.borderColor = '#666'; zone.style.background = 'rgba(0,0,0,0.6)';
+                if (this.draggedVal && this.activeDragElement) {
+                    zone.setAttribute('data-filled', this.draggedVal); zone.innerHTML = this.activeDragElement.innerHTML;
+                }
+            });
+            
+            zone.addEventListener('pointerdown', (e) => {
+                if (this.selectedLinearVal) {
+                    zone.setAttribute('data-filled', this.selectedLinearVal); zone.innerHTML = this.selectedLinearText;
+                    dragItems.forEach(i => i.style.borderColor = '#aaa'); this.selectedLinearVal = null; 
+                } else if (zone.getAttribute('data-filled')) {
+                    zone.removeAttribute('data-filled'); zone.innerHTML = ''; zone.style.borderColor = '#666';
+                }
+            });
         });
     }
 
@@ -1162,37 +1178,12 @@ class UIManager {
 
             const app = window.app; if (!app) return;
 
-            if (id.startsWith('btn-') || target.classList.contains('nav-btn')) {
-                e.stopPropagation();
-            }
-
             if (id === 'btn-add-c') app.interactionManager?.selectElementToAdd('C');
             if (id === 'btn-add-h') app.interactionManager?.selectElementToAdd('H');
             if (id === 'btn-add-o') app.interactionManager?.selectElementToAdd('O');
             if (id === 'btn-select-hand') app.interactionManager?.selectElementToAdd('hand');
-            
-            if (id === 'btn-undo') {
-                if (this._lastUndoTime && Date.now() - this._lastUndoTime < 300) return; 
-                this._lastUndoTime = Date.now();
-
-                if (this.currentLevel === 1) {
-                    if (app.sceneManager && typeof app.sceneManager.undoLast === 'function') {
-                        app.sceneManager.undoLast();
-                    }
-                } else {
-                    this.showMagicNotice("提示", "反应阶段不可撤销固定原子的结构！若需重新实验请点击【🧪 重置交互】");
-                }
-            }
-            
-            if (id === 'btn-clear') {
-                if (this.currentLevel === 1) {
-                    if (app.sceneManager && typeof app.sceneManager.clearAll === 'function') {
-                        app.sceneManager.clearAll();
-                    }
-                } else {
-                    this.showMagicNotice("提示", "反应阶段不可清空场景！若需重新实验请点击【🧪 重置交互】");
-                }
-            }
+            if (id === 'btn-undo') app.sceneManager?.undoLast();
+            if (id === 'btn-clear') app.sceneManager?.clearAll();
 
             if (id === 'btn-marquee-copy') { if (app.sceneManager && typeof app.sceneManager.copySelected === 'function') app.sceneManager.copySelected(); }
             if (id === 'btn-marquee-delete') { if (app.sceneManager && typeof app.sceneManager.deleteSelected === 'function') app.sceneManager.deleteSelected(); }
@@ -1304,49 +1295,39 @@ class UIManager {
         const firstNavBtn = document.querySelector('.nav-btn');
         if (firstNavBtn && !document.getElementById('btn-help-guide')) {
             const btnHelp = document.createElement('button');
-            btnHelp.type = 'button';
             btnHelp.id = 'btn-help-guide';
             btnHelp.className = firstNavBtn.className.replace('active', '').trim(); 
             btnHelp.innerHTML = '❓ 帮助'; btnHelp.title = '查看详细操作指南';
-            btnHelp.style.color = UI_THEME.warning; btnHelp.style.borderColor = UI_THEME.warning;
+            btnHelp.style.color = '#ffaa00'; btnHelp.style.borderColor = '#ffaa00';
             btnHelp.style.marginRight = '10px'; btnHelp.style.textShadow = '0 0 5px rgba(255, 170, 0, 0.5)';
-            
-            btnHelp.addEventListener('pointerdown', e => e.stopPropagation());
-            btnHelp.addEventListener('mousedown', e => e.stopPropagation());
-
             firstNavBtn.parentNode.insertBefore(btnHelp, firstNavBtn);
-            btnHelp.addEventListener('click', (e) => { if(e)e.preventDefault(); this.showHelpInstructions(); });
+            btnHelp.addEventListener('click', () => { this.showHelpInstructions(); });
         }
 
         const systemMenu = document.getElementById('system-menu');
         if (systemMenu && !document.getElementById('btn-undo')) {
             const createBtn = (id, icon, color, title) => {
                 const btn = document.createElement('button');
-                btn.type = 'button'; 
                 btn.id = id; btn.className = 'magic-btn'; btn.innerHTML = icon;
                 btn.style.borderColor = color; btn.style.color = color;
                 if(title) btn.title = title;
-
-                btn.addEventListener('pointerdown', e => e.stopPropagation());
-                btn.addEventListener('mousedown', e => e.stopPropagation());
-
                 return btn;
             };
 
-            systemMenu.appendChild(createBtn('btn-toggle-main-3d', '👁️', UI_THEME.primary, '打开/关闭 3D 参考视图'));
-            systemMenu.appendChild(createBtn('btn-undo', '↩️', UI_THEME.warning, '撤销上一步操作'));
-            systemMenu.appendChild(createBtn('btn-clear', '🧹', UI_THEME.danger, '清空重置场景'));
+            systemMenu.appendChild(createBtn('btn-toggle-main-3d', '👁️', 'var(--rpg-mana)', '打开/关闭 3D 参考视图'));
+            systemMenu.appendChild(createBtn('btn-undo', '↩️', '#ffaa00', '撤销上一步操作'));
+            systemMenu.appendChild(createBtn('btn-clear', '🧹', '#ff4444', '清空重置场景'));
             
-            const btnChallenge = createBtn('btn-toggle-challenge', '🎯', UI_THEME.primary, '开启挑战');
+            const btnChallenge = createBtn('btn-toggle-challenge', '🎯', '#00ffcc', '开启挑战');
             btnChallenge.classList.add('hidden'); systemMenu.appendChild(btnChallenge);
 
             const btnRetry = createBtn('btn-retry-interaction', '🧪', '#ff8800', '重置交互步骤');
             btnRetry.classList.add('hidden'); systemMenu.appendChild(btnRetry);
 
-            const btnQuiz = createBtn('btn-trigger-quiz', '👩‍💼', UI_THEME.primary, 'AI 随堂检测');
+            const btnQuiz = createBtn('btn-trigger-quiz', '👩‍💼', '#00ffcc', 'AI 随堂检测');
             btnQuiz.classList.add('hidden'); systemMenu.appendChild(btnQuiz);
             
-            const btnReset = createBtn('btn-reset-progress', '🗑️', UI_THEME.danger, '清空本地存档并重头开始');
+            const btnReset = createBtn('btn-reset-progress', '🗑️', '#ff4444', '清空本地存档并重头开始');
             systemMenu.appendChild(btnReset);
         }
     }
@@ -1355,7 +1336,6 @@ class UIManager {
         let systemMenu = document.getElementById('system-menu');
         if (systemMenu && !document.getElementById('btn-auto-build')) {
             const btnAutoBuild = document.createElement('button');
-            btnAutoBuild.type = 'button';
             btnAutoBuild.id = 'btn-auto-build'; btnAutoBuild.className = 'magic-btn';
             btnAutoBuild.innerHTML = '🪄'; btnAutoBuild.title = '快捷搭建模型';
             btnAutoBuild.style.borderColor = 'var(--rpg-mana)'; btnAutoBuild.style.color = 'var(--rpg-mana)';
@@ -1400,8 +1380,7 @@ class UIManager {
                 btnToggle.innerHTML = `👁️`; btnToggle.title = `打开 ${targetText}`;
             }
             
-            btnToggle.onclick = (e) => {
-                if(e) e.preventDefault();
+            btnToggle.onclick = () => {
                 const isHidden = leftPanel.classList.contains('hidden');
                 const nextText = getVisionText(this.currentMoleculeType);
                 if (isHidden) {
@@ -1431,15 +1410,14 @@ class UIManager {
             }
         }
         if (btnHighlight) {
-            btnHighlight.onclick = (e) => {
-                if(e) e.preventDefault();
+            btnHighlight.onclick = () => {
                 if (window.app && window.app.sceneManager) {
                     window.app.sceneManager.toggleHighlightFunctionalGroup(this.currentMoleculeType);
                     btnHighlight.innerText = window.app.sceneManager.isHighlighted ? "取消高亮" : "✨";
                 }
             };
         }
-        if (btnReplay && !btnReplay.onclick) btnReplay.onclick = (e) => { if(e) e.preventDefault(); this.replayCinematicMicroAnimation(); };
+        if (btnReplay && !btnReplay.onclick) btnReplay.onclick = () => this.replayCinematicMicroAnimation();
     }
 
     playCinematicMicroAnimation(reactionType) {
@@ -1527,67 +1505,378 @@ class UIManager {
         }
     }
 
-    // 🌟 GitHub 终极防御：提取所有新弹窗通用的强力底层 CSS (避免代码过度重复)
-    get _fullScreenOverlayStyle() {
-        return 'position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; display: flex !important; justify-content: center !important; align-items: center !important; background: rgba(0,0,0,0.85) !important; z-index: 2147483647 !important; margin: 0 !important; padding: 0 !important; pointer-events: auto !important; overflow: hidden !important; transform: none !important; opacity: 1 !important; visibility: visible !important;';
-    }
-    
-    _getModalBoxStyle(borderColor) {
-        return `position: relative !important; width: 90vw !important; max-width: 1200px !important; max-height: 90vh !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; background: ${UI_THEME.bgDark} !important; border: 3px solid ${borderColor} !important; border-radius: 20px !important; box-shadow: 0 15px 60px rgba(0,0,0,0.5) !important; margin: 0 auto !important; padding: 40px !important; box-sizing: border-box !important; overflow-y: auto !important; overflow-x: hidden !important; transform: none !important; pointer-events: auto !important; opacity: 1 !important; visibility: visible !important;`;
-    }
-
-    // 🌟 GitHub 环境终极防御区：为错题本单独创建绝对安全的顶级覆盖层
-    showWrongQuestions() {
-        const existingOverlay = document.getElementById('wrong-question-overlay');
-        if (existingOverlay) existingOverlay.remove();
-        
-        const overlay = document.createElement('div');
-        overlay.id = 'wrong-question-overlay';
-        
-        // 彻底接管外部 CSS 的 fixed 样式
-        overlay.style.cssText = this._fullScreenOverlayStyle;
-
-        let content = `
-            <button type="button" id="btn-close-wq-top" style="position: absolute !important; top: 20px !important; right: 20px !important; width: 50px !important; height: 50px !important; font-size: 1.8em !important; padding: 0 !important; z-index: 100000 !important; cursor: pointer !important; background: transparent !important; border: none !important; color: #ff4444 !important; transform: none !important;">❌</button>
-            <h2 style="color: #ff4444 !important; text-align: center !important; margin: 0 0 40px 0 !important; font-size: 3.5em !important; font-family: 'Heiti', sans-serif !important; text-shadow: 2px 2px 5px #000 !important;">错题档案本</h2>
-        `;
-        
-        // 错题内容区
-        content += `<div style="width: 100% !important; display: flex !important; flex-direction: column !important; gap: 30px !important;">`;
-        if (!this.userStats.wrongQuestions || this.userStats.wrongQuestions.length === 0) {
-            content += `<div style="text-align: center !important; padding: 50px !important; background: rgba(0,255,204,0.1) !important; border-radius: 20px !important;"><h3 style="color: #00ffcc !important; font-size: 3em !important; font-family: 'Heiti', sans-serif !important; margin: 0 0 30px 0 !important;">完美无瑕！</h3><p style="color: #fff !important; font-size: 2em !important; font-family: 'Songti', serif !important; margin: 0 !important;">大考全对，无错题记录。</p></div>`;
-        } else {
-            this.userStats.wrongQuestions.forEach((wq, index) => {
-                let modText = ["", "探究阶段", "取代实验", "氧化实验", "最终大考"][wq.module] || "考核点";
-                content += `
-                    <div style="background: rgba(0,0,0,0.6) !important; padding: 40px !important; border: 2px solid #ff4444 !important; border-radius: 12px !important; text-align: left !important; width: 100% !important; box-sizing: border-box !important;">
-                        <div style="color: #ffaa00 !important; font-weight: bold !important; margin-bottom: 20px !important; font-size: 2.5em !important; font-family: 'Heiti', sans-serif !important;">记录 #${index + 1} &nbsp;<span style="color:#aaa !important; font-size:0.8em !important; font-weight:normal !important;">(${modText})</span></div>
-                        <div style="color: #fff !important; line-height: 1.8 !important; font-size: 2.8em !important; font-family: 'Songti', serif !important; word-break: break-word !important; white-space: normal !important; overflow-wrap: break-word !important;">${wq.explanation}</div>
-                    </div>
-                `;
-            });
+    showAITrial() {
+        const panel = document.getElementById('ai-trial-panel');
+        if (panel) {
+            panel.classList.remove('hidden');
+            document.getElementById('canvas-container')?.classList.add('canvas-shrunk');
+            document.getElementById('ai-content').innerHTML = `<p style="font-size: 1.8em; color: var(--rpg-mana); font-family: 'Heiti', sans-serif;">正在生成随堂测试题...</p>`;
+            document.getElementById('btn-close-ai')?.classList.remove('hidden');
         }
-        content += `</div>`; // 关闭错题区
+    }
+
+    showEvaluation() {
+        ['.action-bar', '.system-menu', '#left-vision-panel', '#ai-trial-panel', '#evaluation-panel'].forEach(selector => {
+            const el = document.querySelector(selector);
+            if(el) el.classList.add('hidden');
+        });
         
-        content += `
-            <div style="text-align: center !important; margin-top: 50px !important; display: flex !important; justify-content: center !important; gap: 40px !important; flex-wrap: wrap !important; width: 100% !important;">
-                <button type="button" id="btn-download-wq-txt" class="magic-btn" style="font-size: 2.5em !important; font-family: 'Heiti', sans-serif !important; padding: 15px 50px !important; border: 2px solid #00ffcc !important; color: #00ffcc !important; box-shadow: 0 0 20px rgba(0,255,204,0.3) !important; cursor: pointer !important; background: transparent !important;">⬇️ 下载错题复习(TXT)</button>
-                <button type="button" id="btn-close-wq-panel" class="magic-btn" style="font-size: 2.5em !important; font-family: 'Heiti', sans-serif !important; padding: 15px 50px !important; border: 2px solid #fff !important; color: #fff !important; cursor: pointer !important; background: transparent !important;">❌ 关闭档案</button>
+        document.getElementById('canvas-container')?.classList.add('canvas-shrunk');
+
+        const score1 = 20 + (this.userStats.foundIsomer ? 80 : 0);
+        const score2 = this.userStats.linearStructuresPassed ? 100 : 0;
+        const score3 = (this.userStats.watchedNa ? 50 : 0) + (this.userStats.watchedCu ? 50 : 0);
+        const score4 = (this.userStats.eqSodiumPassed ? 50 : 0) + (this.userStats.eqOxidationPassed ? 50 : 0);
+        const score5 = this.userStats.finalQuizScore !== undefined ? this.userStats.finalQuizScore : 0; 
+
+        const totalScore = score1 + score2 + score3 + score4 + score5; 
+        
+        let rank = 'C'; let rankColor = '#aaaaaa';
+        if (totalScore >= 450) { rank = 'S'; rankColor = '#ffaa00'; }
+        else if (totalScore >= 380) { rank = 'A'; rankColor = '#00ffcc'; }
+        else if (totalScore >= 300) { rank = 'B'; rankColor = '#4488ff'; }
+
+        this.currentRank = { letter: rank, color: rankColor };
+
+        let overlay = document.getElementById('eval-dynamic-overlay');
+        if (overlay) overlay.remove();
+
+        overlay = document.createElement('div');
+        overlay.id = 'eval-dynamic-overlay';
+        overlay.className = this.baseOverlayClass;
+        
+        // 🌟 修复：强行注入 fixed 定位与宽高，确保成绩雷达图与弹窗全局居中
+        overlay.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 9999999 !important; background: rgba(0,0,0,0.85) !important; animation: none !important; transition: none !important; opacity: 1 !important; display: block !important;';
+
+        overlay.innerHTML = `
+            <div class="challenge-modal magic-scroll" style="width: 100%; height: 100%; overflow-y: auto; position: relative; padding: 20px 40px; box-sizing: border-box; background: rgba(20,20,30,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                
+                <button id="btn-close-eval-dynamic" class="magic-btn close-btn" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8em; padding: 0; z-index: 10000; cursor: pointer;">❌</button>
+                
+                <h2 style="color: var(--rpg-gold, #ffaa00); font-size: 3.5em; margin-bottom: 10px; margin-top: 10px; text-shadow: 0 0 20px rgba(255,215,0,0.5); font-family: 'Heiti', sans-serif;">🏆 炼金宗师终极报告</h2>
+                <p style="color: #fff; font-size: 1.8em; margin-bottom: 30px; font-family: 'Songti', serif;">经过严密的综合分析，您的化学探索总分为 <strong style="color:#00ffcc; font-size:1.5em; font-family: 'Heiti', sans-serif;">${totalScore}</strong> 分！</p>
+
+                <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; gap: 80px; width: 100%; max-width: 1200px; margin-bottom: 40px;">
+                    
+                    <div style="text-align: center; background: rgba(0,0,0,0.6); padding: 40px 50px; border-radius: 20px; border: 2px solid ${rankColor}; box-shadow: 0 0 30px ${rankColor}; width: 350px; flex-shrink: 0;">
+                        <div style="font-size: 1.8em; color: #fff; margin-bottom: 15px; font-family: 'Heiti', sans-serif;">综合评分: <span style="color:var(--rpg-mana, #00ffcc); font-weight:bold; font-size: 1.5em;">${totalScore}</span> / 500</div>
+                        <div style="font-size: 2em; color: #fff; margin-bottom: 10px; margin-top: 25px; font-family: 'Heiti', sans-serif;">最终评级</div>
+                        <div style="font-size: 8em; font-weight: bold; font-style: italic; font-family: 'Courier New', monospace; color: ${rankColor}; text-shadow: 0 0 20px ${rankColor}; line-height: 1;">${rank}</div>
+                    </div>
+
+                    <div style="width: 450px; height: 450px; flex-shrink: 0; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); border-radius: 50%; box-shadow: inset 0 0 30px rgba(0,255,204,0.1);">
+                        <canvas id="radarChart-dynamic" width="450" height="450" style="max-width: 100%; max-height: 100%;"></canvas>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;">
+                    <button id="btn-wrong-questions-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: #ff4444; color: #ff4444; box-shadow: 0 0 20px rgba(255, 68, 68, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">📝 查看错题解析</button>
+                    <button id="btn-download-eval-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: #ffaa00; color: #ffaa00; box-shadow: 0 0 20px rgba(255, 170, 0, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">⬇️ 下载成就证书</button>
+                    <button id="btn-return-home-dynamic" class="magic-btn" style="font-size: 2em; padding: 15px 40px; border-color: #00ffcc; color: #00ffcc; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); font-family: 'Heiti', sans-serif; cursor: pointer;">🏠 重新开始探索</button>
+                </div>
             </div>
         `;
+        document.body.appendChild(overlay);
+
+        this.renderRadarChart([score1, score2, score3, score4, score5], ['架构搭建', '闯关挑战', '微观动画', '反应模拟', '综合大考']);
+
+        const self = this;
+        document.getElementById('btn-close-eval-dynamic').addEventListener('click', () => {
+            overlay.remove(); 
+            document.querySelector('.system-menu')?.classList.remove('hidden');
+            document.querySelector('.action-bar')?.classList.remove('hidden');
+            document.getElementById('canvas-container')?.classList.remove('canvas-shrunk');
+        });
         
-        overlay.innerHTML = `<div style="${this._getModalBoxStyle(UI_THEME.danger)}">${content}</div>`;
-        document.body.appendChild(overlay); 
+        document.getElementById('btn-wrong-questions-dynamic').addEventListener('click', () => self.showWrongQuestions());
+        document.getElementById('btn-download-eval-dynamic').addEventListener('click', () => self.downloadEvaluation());
+        
+        document.getElementById('btn-return-home-dynamic').addEventListener('click', () => {
+            overlay.remove(); 
+            document.getElementById('final-quiz-dynamic-overlay')?.remove(); 
+            
+            self.switchModule(1);
+            if (window.app && window.app.sceneManager) window.app.sceneManager.clearAll();
+
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach((btn, index) => {
+                if (index > 0) btn.classList.add('locked');
+                btn.classList.remove('active');
+            });
+            if (navBtns[0]) navBtns[0].classList.add('active');
+        });
+    }
+
+    renderRadarChart(dataArray, labels = ['架构搭建', '闯关挑战', '微观动画', '反应模拟', '综合大考']) {
+        const ctxEl = document.getElementById('radarChart-dynamic') || document.getElementById('radarChart');
+        if(!ctxEl) return;
+        if(typeof Chart === 'undefined') {
+            console.warn("Chart.js 库未加载，无法渲染雷达图。");
+            return;
+        }
+        const ctx = ctxEl.getContext('2d');
+        if(window.magicRadarChart) window.magicRadarChart.destroy();
+        Chart.defaults.color = '#fff'; Chart.defaults.font.family = "'Courier New', monospace"; Chart.defaults.font.size = 18;
+        window.magicRadarChart = new Chart(ctx, {
+            type: 'radar',
+            data: { labels: labels, datasets: [{ data: dataArray, backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#ffd700', borderWidth: 3, pointBackgroundColor: '#fff', pointBorderColor: '#ffd700', pointRadius: 5 }] },
+            options: { scales: { r: { angleLines: { color: 'rgba(255,255,255,0.4)' }, grid: { color: 'rgba(255,255,255,0.2)' }, pointLabels: { color: '#00ffcc', font: { size: 20, weight: 'bold' } }, ticks: { display: false, min: 0, max: 100 } } }, plugins: { legend: { display: false } } }
+        });
+    }
+
+    downloadEvaluation() {
+        const canvas = document.getElementById('radarChart-dynamic') || document.getElementById('radarChart');
+        if (!canvas) { this.showMagicNotice("失败", "图表未找到"); return; }
+        
+        const wrongQs = this.userStats.wrongQuestions || [];
+        
+        const ctxMeasure = document.createElement('canvas').getContext('2d');
+        ctxMeasure.font = '22px "Songti", "SimSun", serif';
+        const maxWidth = 680; 
+        const lineHeight = 35;
+        let dynamicWrongHeight = 0;
+
+        const wrappedTextLines = []; 
+
+        if (wrongQs.length > 0) {
+            dynamicWrongHeight += 80; 
+            wrongQs.forEach((wq, idx) => {
+                let plainText = wq.explanation.replace(/<[^>]+>/g, '').trim(); 
+                let fullStr = `Q${idx + 1}: ${plainText}`;
+                
+                let chars = fullStr.split('');
+                let line = '';
+                let questionLines = [];
+                
+                for (let n = 0; n < chars.length; n++) {
+                    let testLine = line + chars[n];
+                    let metrics = ctxMeasure.measureText(testLine);
+                    if (metrics.width > maxWidth && n > 0) {
+                        questionLines.push(line);
+                        line = chars[n];
+                    } else {
+                        line = testLine;
+                    }
+                }
+                questionLines.push(line); 
+                wrappedTextLines.push({ lines: questionLines });
+                
+                dynamicWrongHeight += (questionLines.length * lineHeight) + 40; 
+            });
+            dynamicWrongHeight += 60; 
+        }
+
+        const baseHeight = 900; 
+        const totalHeight = baseHeight + dynamicWrongHeight;
+
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = 800; tempCanvas.height = totalHeight;
+        const ctx = tempCanvas.getContext('2d');
+        
+        const grad = ctx.createLinearGradient(0, 0, 0, totalHeight);
+        grad.addColorStop(0, '#101420'); grad.addColorStop(1, '#080a10');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 800, totalHeight);
+        
+        ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 6; ctx.strokeRect(20, 20, 760, totalHeight - 40);
+        ctx.strokeStyle = 'rgba(0, 255, 204, 0.3)'; ctx.lineWidth = 2; ctx.strokeRect(30, 30, 740, totalHeight - 60);
+        
+        ctx.fillStyle = '#00ffcc'; 
+        ctx.font = 'bold 48px "Heiti", "SimHei", sans-serif'; 
+        ctx.textAlign = 'center'; 
+        ctx.shadowColor = 'rgba(0, 255, 204, 0.8)'; ctx.shadowBlur = 15;
+        ctx.fillText('炼金成就证书', 400, 90);
+        ctx.shadowBlur = 0; 
+        
+        if (this.currentRank) {
+            ctx.fillStyle = this.currentRank.color;
+            ctx.font = 'bold 100px "Arial"';
+            ctx.fillText(this.currentRank.letter, 650, 150); 
+            ctx.font = 'bold 24px "Heiti", "SimHei", sans-serif';
+            ctx.fillStyle = '#ffffff'; ctx.fillText('综合评级', 650, 60);
+        }
+
+        ctx.beginPath(); ctx.arc(400, 450, 280, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fill();
+        ctx.drawImage(canvas, 100, 150, 600, 600);
+        
+        ctx.textAlign = 'left';
+        if (wrongQs.length > 0) {
+            ctx.fillStyle = '#ffaa00'; ctx.font = 'bold 30px "Heiti", "SimHei", sans-serif'; 
+            ctx.fillText('【错题档案归纳】', 60, 820);
+            
+            ctx.fillStyle = '#dddddd'; ctx.font = '22px "Songti", "SimSun", serif'; 
+            let currentY = 870;
+            
+            wrappedTextLines.forEach((wqData) => {
+                wqData.lines.forEach(lineText => { ctx.fillText(lineText, 60, currentY); currentY += lineHeight; });
+                currentY += 20; 
+            });
+            
+            ctx.textAlign = 'center'; ctx.fillStyle = '#aaaaaa'; ctx.font = '18px "Heiti", "SimHei", sans-serif'; 
+            ctx.fillText(`生成时间: ${new Date().toLocaleString()}`, 400, totalHeight - 50);
+        } else {
+            ctx.textAlign = 'center'; ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 34px "Heiti", "SimHei", sans-serif'; 
+            ctx.fillText('干得漂亮！本次大考满分通关，无错题记录。', 400, 830);
+            ctx.fillStyle = '#aaaaaa'; ctx.font = '18px "Heiti", "SimHei", sans-serif'; 
+            ctx.fillText(`生成时间: ${new Date().toLocaleString()}`, 400, 880);
+        }
+
+        const link = document.createElement('a'); 
+        link.download = `成就证书_${new Date().getTime()}.png`;
+        link.href = tempCanvas.toDataURL('image/png', 1.0); 
+        link.click();
+        this.showMagicNotice("下载成功", "高定证书（含完整错题记录）已保存到本地！");
+    }
+
+    hideMain3DView() {
+        const leftPanel = document.getElementById('left-vision-panel');
+        const btnToggle = document.getElementById('btn-toggle-main-3d');
+        const actionBar = document.querySelector('.action-bar');
+        
+        if (leftPanel && !leftPanel.classList.contains('hidden')) {
+            leftPanel.classList.add('hidden');
+            if (btnToggle) { btnToggle.innerHTML = '👁️'; btnToggle.title = '打开参考视图'; }
+            if (actionBar) { actionBar.classList.remove('action-bar-hidden'); }
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 500);
+        }
+    }
+
+    updateStructureState(hasEthanol, hasDimethylEther, hasEthane, ethaneComponent) {
+        if (!this.builtOrder) this.builtOrder = [];
+        
+        if (hasEthanol && !this.builtOrder.includes('ethanol')) this.builtOrder.push('ethanol');
+        if (hasDimethylEther && !this.builtOrder.includes('dimethyl_ether')) this.builtOrder.push('dimethyl_ether');
+
+        if (hasEthane && !this.snapshots['ethane']) this.snapshots['ethane'] = this.captureIsolatedImage('ethane');
+        if (hasEthanol && !this.snapshots['ethanol']) this.snapshots['ethanol'] = this.captureIsolatedImage('ethanol');
+        if (hasDimethylEther && !this.snapshots['dimethyl_ether']) this.snapshots['dimethyl_ether'] = this.captureIsolatedImage('dimethyl_ether');
+
+        if (hasEthane) this.ethaneComponentRef = ethaneComponent;
+        else this.ethaneComponentRef = null;
+
+        const btnToggle = document.getElementById('btn-toggle-main-3d');
+        
+        if (this.currentLevel === 2 || this.currentLevel === 3 || this.currentLevel === 4) {
+            if (btnToggle) { btnToggle.style.cursor = 'pointer'; btnToggle.style.borderColor = 'var(--rpg-mana)'; btnToggle.style.color = 'var(--rpg-mana)'; }
+            return;
+        }
+
+        const hasBuiltBothHistory = this.builtOrder.includes('ethanol') && this.builtOrder.includes('dimethyl_ether');
+
+        if (hasBuiltBothHistory && this.currentLevel === 1) {
+            if (!this.userStats.foundIsomer) {
+                this.userStats.foundIsomer = true; this.saveProgress(); 
+                this.showMagicNotice("成功解锁！", "你发现了异构体！左侧菜单已开启「🎯」挑战。");
+            }
+            const btnToggleChallenge = document.getElementById('btn-toggle-challenge');
+            if (btnToggleChallenge && this.currentLevel === 1) {
+                btnToggleChallenge.classList.remove('hidden'); this.pendingChallengeType = 'linear';
+            }
+        }
+
+        if (!hasEthanol && !hasDimethylEther && !hasEthane) {
+            if (typeof this.hideMain3DView === 'function') this.hideMain3DView();
+            if (btnToggle) {
+                btnToggle.innerHTML = '👁️'; btnToggle.title = '无可用视图'; btnToggle.onclick = null;
+                btnToggle.style.borderColor = '#666'; btnToggle.style.color = '#666'; btnToggle.style.cursor = 'not-allowed';
+            }
+            return; 
+        }
+
+        if (btnToggle) btnToggle.style.cursor = 'pointer';
+
+        if (hasBuiltBothHistory && this.currentLevel === 1) {
+            if (btnToggle) {
+                btnToggle.innerHTML = '👀'; btnToggle.title = '对比 3D 异构体结构';
+                btnToggle.style.borderColor = '#ffaa00'; btnToggle.style.color = '#ffaa00';
+                btnToggle.onclick = () => this.showDualIsomerPopup();
+            }
+        } 
+        else {
+            if (hasDimethylEther) {
+                if (!this.userStats.foundIsomer) {
+                    this.userStats.foundIsomer = true; this.saveProgress(); this.showMagicNotice("提示", "出现新结构！"); 
+                }
+                if (btnToggle) { btnToggle.innerHTML = '👁️'; btnToggle.onclick = null; btnToggle.style.borderColor = 'var(--rpg-mana)'; btnToggle.style.color = 'var(--rpg-mana)'; }
+                this.unlockMain3DView('dimethyl_ether');
+            }
+            else if (hasEthanol) {
+                if (btnToggle) { btnToggle.innerHTML = '👁️'; btnToggle.onclick = null; btnToggle.style.borderColor = 'var(--rpg-mana)'; btnToggle.style.color = 'var(--rpg-mana)'; }
+                
+                if (this.currentLevel === 1) {
+                    this.unlockMain3DView('ethanol');
+                    if (!this.userStats.foundIsomer) {
+                        if (typeof this.showAutoBuildBtn === 'function') this.showAutoBuildBtn();
+                        this.showMagicNotice("拼装成功！", "可以打开结构视图查看。尝试把氧(O)原子放到中间试试？"); 
+                    }
+                }
+            }
+            else if (hasEthane) {
+                if (btnToggle) { 
+                    btnToggle.innerHTML = '👁️'; btnToggle.onclick = null; 
+                    btnToggle.style.borderColor = 'var(--rpg-mana)'; 
+                    btnToggle.style.color = 'var(--rpg-mana)'; 
+                }
+                
+                if (this.currentLevel === 1) {
+                    this.unlockMain3DView('ethane'); 
+                    if (!this.userStats.notifiedEthane) {
+                        this.userStats.notifiedEthane = true;
+                        this.showMagicNotice("基础结构完成", "这是乙烷(Ethane)！点击左侧发光的 👁️ 按钮查看 3D 全息模型。"); 
+                    }
+                }
+            }
+        }
+    }
+
+    showDualIsomerPopup() {
+        let popup = document.getElementById('dual-isomer-popup');
+        let canvas = document.getElementById('canvas-container');
+        if (!popup || !canvas) return;
+        
+        const boxEth = document.getElementById('model-box-ethanol');
+        const boxEther = document.getElementById('model-box-ether');
+        const labelEth = document.getElementById('label-ethanol');
+        const labelEther = document.getElementById('label-ether');
+
+        if (this.builtOrder && this.builtOrder.length > 0) {
+            if (this.builtOrder[0] === 'dimethyl_ether') {
+                if (boxEther) boxEther.style.order = 1; if (boxEth) boxEth.style.order = 2;   
+                if (labelEther) labelEther.innerText = " (结构 B)"; if (labelEth) labelEth.innerText = "(结构 A)";
+            } else {
+                if (boxEth) boxEth.style.order = 1; if (boxEther) boxEther.style.order = 2; 
+                if (labelEth) labelEth.innerText = " (结构 A)"; if (labelEther) labelEther.innerText = "(结构 B)";
+            }
+        }
+        
+        canvas.classList.add('canvas-shrunk');
+        
+        const leftPanel = document.getElementById('left-vision-panel');
+        if (leftPanel && !leftPanel.classList.contains('hidden')) leftPanel.classList.add('hidden');
+
+        const actionBar = document.querySelector('.action-bar');
+        if (actionBar) actionBar.style.display = 'none';
+
+        popup.classList.remove('hidden');
+
+        if (this.dualRenderers) this.dualRenderers.forEach(r => { if(r && r.dispose) r.dispose(); });
 
         setTimeout(() => {
-            const btnDownloadTxt = document.getElementById('btn-download-wq-txt');
-            if (btnDownloadTxt) btnDownloadTxt.onclick = (e) => { if(e) e.preventDefault(); this.downloadWrongQuestionsText(); };
-            
-            const closeFunc = (e) => { if(e) e.preventDefault(); overlay.remove(); };
-            const btnClosePanel = document.getElementById('btn-close-wq-panel');
-            if (btnClosePanel) btnClosePanel.onclick = closeFunc;
-            const btnCloseTop = document.getElementById('btn-close-wq-top');
-            if (btnCloseTop) btnCloseTop.onclick = closeFunc;
+            this.dualRenderers = [
+                new MiniModelRenderer('dual-3d-ethanol', 'ethanol'),
+                new MiniModelRenderer('dual-3d-ether', 'dimethyl_ether')
+            ];
+            window.dispatchEvent(new Event('resize'));
         }, 100);
+
+        const closeBtn = document.getElementById('btn-close-dual-popup');
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                popup.classList.add('hidden');
+                canvas.classList.remove('canvas-shrunk');
+                if (actionBar) actionBar.style.display = 'flex';
+                if (this.dualRenderers) { this.dualRenderers.forEach(r => r.dispose()); this.dualRenderers = null; }
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 600);
+            };
+        }
     }
 }
